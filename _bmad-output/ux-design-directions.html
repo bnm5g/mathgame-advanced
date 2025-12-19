@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculus Racer - Design Directions Showcase</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: hsl(230, 15%, 7%);
+            --text-main: hsl(0, 0%, 95%);
+            --text-dim: hsl(230, 10%, 60%);
+            --color-pos: hsl(200, 100%, 50%);
+            --color-vel: hsl(150, 100%, 45%);
+            --color-acc: hsl(45, 100%, 50%);
+            --color-jerk: hsl(280, 100%, 65%);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 4px;
+        }
+
+        .directions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .direction-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mockup-frame {
+            height: 500px;
+            background: #000;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .description {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        /* Direction A: Minimalist HUD */
+        .dir-a .hud-node {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .dir-a .quest-box {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+        }
+
+        .dir-a .car-indicator {
+            top: 70%;
+            left: 50%;
+            width: 40px;
+            height: 20px;
+            background: var(--color-pos);
+            border-radius: 4px;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px var(--color-pos);
+        }
+
+        .dir-a .stat-ring {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        /* Direction B: Tactical Dashboard */
+        .dir-b .sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .dir-b .race-view {
+            margin-left: 200px;
+            height: 100%;
+            position: relative;
+        }
+
+        .dir-b .stat-line {
+            height: 4px;
+            width: 100%;
+            background: #333;
+            position: relative;
+        }
+
+        .dir-b .stat-fill {
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-main);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CHOOSE YOUR INTERFACE</h1>
+            <p>Calculus Racer | UI Direction探索</p>
+        </div>
+
+        <div class="directions-grid">
+            <!-- Direction A -->
+            <div class="direction-card dir-a">
+                <h2>Direction A: Minimalist HUD</h2>
+                <div class="tag">FOCUS: IMMERSION</div>
+                <div class="mockup-frame">
+                    <div class="hud-node quest-box" style="border-top: 2px solid var(--color-pos);">
+                        <span class="tag">FIND f'(x)</span>
+                        <div style="font-family:'JetBrains Mono'; margin-top:10px">5x³ + 2x</div>
+                    </div>
+                    <div class="car-indicator"></div>
+                    <div class="hud-node stat-ring">
+                        <div style="font-family:'JetBrains Mono'; font-size: 24px; color: var(--color-vel)">154
+                            <small>kph</small></div>
+                    </div>
+                </div>
+                <p class="description">
+                    The race track is the star. Data "floats" around the car. Perfect for players who want to FEEL the
+                    speed and keep their eyes on the road. Uses lighter glassmorphism and minimal borders.
+                </p>
+            </div>
+
+            <!-- Direction B -->
+            <div class="direction-card dir-b">
+                <h2>Direction B: Tactical Dashboard</h2>
+                <div class="tag">FOCUS: STRATEGY</div>
+                <div class="mockup-frame">
+                    <div class="sidebar">
+                        <span class="tag">TELEMETRY</span>
+                        <div class="stat-line">
+                            <div class="stat-fill" style="width: 80%; background: var(--color-jerk)"></div>
+                        </div>
+                        <small style="font-family:'JetBrains Mono'; font-size: 10px">JERK [0.8]</small>
+                        <div class="stat-line">
+                            <div class="stat-fill" style="width: 60%; background: var(--color-acc)"></div>
+                        </div>
+                        <small style="font-family:'JetBrains Mono'; font-size: 10px">ACCEL [2.4]</small>
+                        <div class="stat-line">
+                            <div class="stat-fill" style="width: 40%; background: var(--color-vel)"></div>
+                        </div>
+                        <small style="font-family:'JetBrains Mono'; font-size: 10px">VELO [12.5]</small>
+                    </div>
+                    <div class="race-view">
+                        <div
+                            style="position:absolute; top: 20px; left: 20px; background:rgba(0,0,0,0.8); padding: 10px; border: 1px solid var(--color-pos); width: 80%">
+                            <div style="font-family:'JetBrains Mono'">[Q]: ∫ (2x + 1) dx</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="description">
+                    The cockpit experience. High-density data bars on the left, race view on the right. Perfect for
+                    "Operators" who want to obsess over the derivative accumulation curves.
+                </p>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding: 20px;">
+            <p><strong>Minh, which cockpit speaks to you?</strong></p>
+            <p style="color:var(--text-dim); font-size: 14px;">Direction A is about "The Flow," Direction B is about
+                "The Science."</p>
+        </div>
+    </div>
+</body>
+
+</html>
