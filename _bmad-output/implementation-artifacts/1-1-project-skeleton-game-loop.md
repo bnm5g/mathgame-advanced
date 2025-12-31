@@ -1,6 +1,6 @@
 # Story 1.1: Project Skeleton & Game Loop
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -96,6 +96,8 @@ Status: review
 
 - Tests failed initially due to Timer Mocking issues, resolved by adding `vi.useFakeTimers()`.
 - Linter warnings in `main.ts` resolved by `_dt`.
+- **Code Review**: Fixed weak Observer pattern implementation. Added `subscribe/unsubscribe` to `GameEngine` and updated tests.
+- **Code Review**: Refactored tests to remove `any` casting and verify multiple observers.
 
 ### Completion Notes List
 

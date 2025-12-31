@@ -38,19 +38,48 @@ describe('GameEngine', () => {
         expect(engine.isRunning).toBe(false);
     });
 
-    it('should calculate delta time', () => {
+    it('should notify subscribers on update', () => {
         let capturedDt = -1;
-        engine.onUpdate = (dt) => { capturedDt = dt; };
+        const callback = vi.fn((dt: number) => { capturedDt = dt; });
 
-        // We can't easily mock performance.now() sequence effectively due to 
-        // internal loop structure without more complex mocking.
-        // Instead, we verify that onUpdate is called with SOME number if we can trigger loop.
+        engine.subscribe(callback);
 
-        // Since test env uses stubbed RAF (setTimeout 16ms), we can just wait.
         engine.start();
-        vi.advanceTimersByTime(20); // Advance enough for one frame
+        vi.advanceTimersByTime(20);
         engine.stop();
 
-        expect(capturedDt).toBeGreaterThanOrEqual(0);
+        expect(callback).toHaveBeenCalled();
+        expect(capturedDt).toBeGreaterThan(0);
+    });
+
+    it('should support multiple subscribers', () => {
+        const cb1 = vi.fn();
+        const cb2 = vi.fn();
+
+        engine.subscribe(cb1);
+        engine.subscribe(cb2);
+
+        engine.start();
+        vi.advanceTimersByTime(20);
+        engine.stop();
+
+        expect(cb1).toHaveBeenCalled();
+        expect(cb2).toHaveBeenCalled();
+    });
+
+    it('should stop notifying after unsubscribe', () => {
+        const callback = vi.fn();
+        const unsubscribe = engine.subscribe(callback);
+
+        engine.start();
+        vi.advanceTimersByTime(20);
+        expect(callback).toHaveBeenCalled(); // Called once
+        callback.mockClear();
+
+        unsubscribe();
+        vi.advanceTimersByTime(20);
+        expect(callback).not.toHaveBeenCalled(); // Not called again
+
+        engine.stop();
     });
 });
