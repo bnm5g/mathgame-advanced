@@ -1,14 +1,26 @@
+import { PhysicsEngine } from './physics';
+
 export class GameEngine {
     private lastTime: number = 0;
     private animationFrameId: number | null = null;
     public isRunning: boolean = false;
     private observers: Set<(dt: number) => void> = new Set();
 
+    // Physics constants
+    private readonly FIXED_DT = 1 / 30; // 30 FPS physics ticks
+    private accumulator = 0;
+    public physics: PhysicsEngine;
+
+    constructor() {
+        this.physics = new PhysicsEngine();
+    }
+
     public start(): void {
         if (this.isRunning) return;
 
         this.isRunning = true;
         this.lastTime = performance.now();
+        this.accumulator = 0;
         this.animationFrameId = requestAnimationFrame(this.loop);
     }
 
@@ -29,11 +41,18 @@ export class GameEngine {
         if (!this.isRunning) return;
 
         // Calculate delta time in seconds
-        // Prevent huge dt if tab was inactive or first fram
-        const dt = Math.min((timestamp - this.lastTime) / 1000, 0.1);
-        this.lastTime = timestamp;
+        let frameTime = (timestamp - this.lastTime) / 1000;
+        if (frameTime > 0.1) frameTime = 0.1; // Cap to avoid spiral of death
 
-        this.notify(dt);
+        this.lastTime = timestamp;
+        this.accumulator += frameTime;
+
+        // Fixed Timestep Physics Updates
+        while (this.accumulator >= this.FIXED_DT) {
+            this.physics.update(this.FIXED_DT);
+            this.accumulator -= this.FIXED_DT;
+            this.notify(this.FIXED_DT);
+        }
 
         this.animationFrameId = requestAnimationFrame(this.loop);
     }

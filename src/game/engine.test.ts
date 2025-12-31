@@ -11,6 +11,8 @@ describe('GameEngine', () => {
             return setTimeout(() => cb(performance.now()), 16); // Simulate ~60fps
         }));
         vi.stubGlobal('cancelAnimationFrame', vi.fn((id) => clearTimeout(id)));
+
+        // Ensure performance.now() is tied to fake timers
         vi.stubGlobal('performance', { now: vi.fn(() => Date.now()) });
 
         engine = new GameEngine();
@@ -24,6 +26,7 @@ describe('GameEngine', () => {
     it('should initialize with default state', () => {
         expect(engine).toBeDefined();
         expect(engine.isRunning).toBe(false);
+        expect(engine.physics).toBeDefined();
     });
 
     it('should start the loop when start() is called', () => {
@@ -38,18 +41,18 @@ describe('GameEngine', () => {
         expect(engine.isRunning).toBe(false);
     });
 
-    it('should notify subscribers on update', () => {
+    it('should notify subscribers on update after enough time passes', () => {
         let capturedDt = -1;
         const callback = vi.fn((dt: number) => { capturedDt = dt; });
 
         engine.subscribe(callback);
 
         engine.start();
-        vi.advanceTimersByTime(20);
+        vi.advanceTimersByTime(100); // Trigger several 16ms frames
         engine.stop();
 
         expect(callback).toHaveBeenCalled();
-        expect(capturedDt).toBeGreaterThan(0);
+        expect(capturedDt).toBeCloseTo(1 / 30, 4);
     });
 
     it('should support multiple subscribers', () => {
@@ -60,7 +63,7 @@ describe('GameEngine', () => {
         engine.subscribe(cb2);
 
         engine.start();
-        vi.advanceTimersByTime(20);
+        vi.advanceTimersByTime(100);
         engine.stop();
 
         expect(cb1).toHaveBeenCalled();
@@ -72,13 +75,34 @@ describe('GameEngine', () => {
         const unsubscribe = engine.subscribe(callback);
 
         engine.start();
-        vi.advanceTimersByTime(20);
-        expect(callback).toHaveBeenCalled(); // Called once
+        vi.advanceTimersByTime(100);
+        expect(callback).toHaveBeenCalled();
         callback.mockClear();
 
         unsubscribe();
-        vi.advanceTimersByTime(20);
-        expect(callback).not.toHaveBeenCalled(); // Not called again
+        vi.advanceTimersByTime(100);
+        expect(callback).not.toHaveBeenCalled();
+
+        engine.stop();
+    });
+
+    it('should run multiple physics ticks if frame time is large', () => {
+        const callback = vi.fn();
+        engine.subscribe(callback);
+
+        engine.start();
+
+        // Wait for first frame to establish lastTime
+        vi.advanceTimersByTime(16);
+        callback.mockClear();
+
+        // Now advance time significantly BEFORE the next raf callback fires
+        // The mock RAF schedules a timeout for 16ms. 
+        // If we advance by 100ms, the next callback will execute with a timestamp jumped by 100ms.
+        vi.advanceTimersByTime(100);
+
+        // 100ms jump / 33.3ms FIXED_DT = 3 ticks
+        expect(callback).toHaveBeenCalledTimes(3);
 
         engine.stop();
     });
