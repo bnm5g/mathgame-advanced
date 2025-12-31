@@ -40,9 +40,17 @@ describe('PhysicsEngine', () => {
         expect(state.pos).toBe(4);
     });
 
-    it('should round values to 3 decimal places', () => {
-        physics.setState({ jerk: 0.12345 });
+    it('should round all state values to 3 decimal places', () => {
+        physics.setState({ jerk: 0.12345, acc: 0.12345, vel: 0.12345 });
         physics.update(1);
-        expect(physics.getState().acc).toBe(0.123);
+        const state = physics.getState();
+        expect(state.acc).toBe(0.247); // 0.123 + 0.123 = 0.246... wait. 
+        // Let's use simpler values to test rounding of existing state + addition
+        physics.setState({ jerk: 0, acc: 0.1234, vel: 0.1234, pos: 0.1234 });
+        physics.update(1);
+        const newState = physics.getState();
+        expect(newState.acc).toBe(0.123);
+        expect(newState.vel).toBe(0.247); // 0.1234 + 0.1234 = 0.2468 -> 0.247
+        expect(newState.pos).toBe(0.370); // 0.1234 + 0.2468 = 0.3702 -> 0.370
     });
 });

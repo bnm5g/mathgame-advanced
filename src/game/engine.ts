@@ -8,6 +8,7 @@ export class GameEngine {
 
     // Physics constants
     private readonly FIXED_DT = 1 / 30; // 30 FPS physics ticks
+    private readonly MAX_FRAME_TIME = 0.1; // Cap to avoid spiral of death
     private accumulator = 0;
     public physics: PhysicsEngine;
 
@@ -42,15 +43,17 @@ export class GameEngine {
 
         // Calculate delta time in seconds
         let frameTime = (timestamp - this.lastTime) / 1000;
-        if (frameTime > 0.1) frameTime = 0.1; // Cap to avoid spiral of death
+        if (frameTime > this.MAX_FRAME_TIME) frameTime = this.MAX_FRAME_TIME;
 
         this.lastTime = timestamp;
         this.accumulator += frameTime;
 
-        // Fixed Timestep Physics Updates
-        while (this.accumulator >= this.FIXED_DT) {
+        // Fixed Timestep Physics Updates with small epsilon to handle float precision
+        const EPSILON = 0.0001;
+        while (this.accumulator >= this.FIXED_DT - EPSILON) {
             this.physics.update(this.FIXED_DT);
             this.accumulator -= this.FIXED_DT;
+            if (this.accumulator < 0) this.accumulator = 0; // Prevent negative drift
             this.notify(this.FIXED_DT);
         }
 

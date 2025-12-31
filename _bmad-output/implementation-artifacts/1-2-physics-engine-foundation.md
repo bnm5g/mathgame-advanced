@@ -1,6 +1,6 @@
 # Story 1.2: Physics Engine Foundation
 
-Status: in-progress
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -19,33 +19,33 @@ so that my vehicle moves according to real calculus principles.
 
 ## Tasks / Subtasks
 
-- [ ] Implement `PhysicsEngine` class structure
-  - [ ] Define `IPhysicsState` interface 
-  - [ ] Initialize variables to 0
-- [ ] Implement Core Physics Loop
-  - [ ] Implement `update(dt)` method with derivative cascade
-  - [ ] Apply rounding logic (3 decimal places)
-- [ ] Implement Fixed Time Step Logic
-  - [ ] Add accumulator to `GameEngine` or `PhysicsEngine`
-  - [ ] Decouple render logic from physics logic
-- [ ] Integrate with `GameEngine`
-  - [ ] Instantiate `PhysicsEngine` in `GameEngine`
-  - [ ] Call `physics.update()` within the loop
-- [ ] Verify with Tests
-  - [ ] Test initialization
-  - [ ] Test derivative accumulation over multiple ticks
+- [x] Implement `PhysicsEngine` class structure
+  - [x] Define `IPhysicsState` interface 
+  - [x] Initialize variables to 0
+- [x] Implement Core Physics Loop
+  - [x] Implement `update(dt)` method with derivative cascade
+  - [x] Apply rounding logic (3 decimal places)
+- [x] Implement Fixed Time Step Logic
+  - [x] Add accumulator to `GameEngine` or `PhysicsEngine`
+  - [x] Decouple render logic from physics logic
+- [x] Integrate with `GameEngine`
+  - [x] Instantiate `PhysicsEngine` in `GameEngine`
+  - [x] Call `physics.update()` within the loop
+- [x] Verify with Tests
+  - [x] Test initialization
+  - [x] Test derivative accumulation over multiple ticks
 
 ## Dev Notes
 
-- **Architecture**: `PhysicsEngine` should be a pure logic class, decoupled from UI. It updates the state.
-- **Patterns**: Use `accumulator` pattern for the game loop stability (fix your timestep!).
-- **Math**: Use simple Euler integration for now: `val += rate * dt`.
-- **Rounding**: `Math.round(num * 1000) / 1000` is sufficient.
+- **Architecture**: `PhysicsEngine` is a pure logic class, decoupled from UI. It updates the state.
+- **Patterns**: Implemented fixed-timestep accumulator (30 FPS) in `GameEngine` to ensure deterministic physics across different frame rates.
+- **Math**: Euler integration: `acc += jerk * dt`, `vel += acc * dt`, `pos += vel * dt`.
+- **Rounding**: Values rounded to 3 decimal places per tick.
 
 ### Project Structure Notes
 
-- `src/game/physics.ts` is the target file.
-- `src/game/engine.ts` will need modification to support the fixed update loop.
+- `src/game/physics.ts` created for core physics logic.
+- `src/game/engine.ts` refactored to handle fixed-timestep and integrate `PhysicsEngine`.
 
 ### References
 
@@ -60,6 +60,20 @@ Gemini 2.0 Flash
 
 ### Debug Log References
 
+- Physics tests `physics.test.ts` passed initially.
+- Engine tests `engine.test.ts` required mock timing adjustments (100ms advancements) to reliably trigger the 33.3ms fixed-timestep logic.
+- Verified "spiral of death" protection by capping `frameTime` at 100ms.
+
 ### Completion Notes List
 
+- Physics engine implemented with full derivative cascade.
+- Game loop refactored for fixed-timestep (30 FPS).
+- Observer pattern preserved and tested with multiple subscribers.
+
 ### File List
+
+- [physics.ts](file:///d:/BMAD%20project/mathgame-advanced/src/game/physics.ts)
+- [physics.test.ts](file:///d:/BMAD%20project/mathgame-advanced/src/game/physics.test.ts)
+- [engine.ts](file:///d:/BMAD%20project/mathgame-advanced/src/game/engine.ts)
+- [engine.test.ts](file:///d:/BMAD%20project/mathgame-advanced/src/game/engine.test.ts)
+- [main.ts](file:///d:/BMAD%20project/mathgame-advanced/src/main.ts)
