@@ -60,8 +60,9 @@ Gemini 2.0 Flash
 
 ### Debug Log References
 
-- Physics tests `physics.test.ts` passed initially.
+- Physics tests `physics.test.ts` passed initially, then expanded to cover all state rounding.
 - Engine tests `engine.test.ts` required mock timing adjustments (100ms advancements) to reliably trigger the 33.3ms fixed-timestep logic.
+- Verified accumulator precision fix (epsilon comparison) and magic number removal.
 - Verified "spiral of death" protection by capping `frameTime` at 100ms.
 
 ### Completion Notes List
