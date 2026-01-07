@@ -29,7 +29,7 @@ workflow_status:
   create-ux-design: "_bmad-output/ux-design-specification.md"
   create-architecture: "_bmad-output/architecture.md"
   create-epics-and-stories: "_bmad-output/epics.md"
-  test-design: recommended
+  test-design: "_bmad-output/test-design-system.md"
   validate-architecture: optional
   implementation-readiness: "_bmad-output/implementation-readiness-report-2025-12-31.md"
   sprint-planning: "_bmad-output/implementation-artifacts/sprint-status.yaml"

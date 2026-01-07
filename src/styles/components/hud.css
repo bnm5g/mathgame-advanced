@@ -2,18 +2,14 @@
 
 .hud-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   pointer-events: none;
-  /* Allow clicks through to canvas */
   z-index: 10;
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  /* Position at bottom like tactical dash */
-  padding-bottom: 2rem;
+  /* Tactical Dash style: Bottom Center */
+  padding-bottom: 4rem;
 }
 
 .question-container {
@@ -144,20 +140,22 @@
   animation: investmentFlash 0.5s ease-out;
 }
 
-/* Telemetry Sidebar */
+/* Telemetry Sidebar - Moved to Top Right per SpaceX UX */
 .telemetry-sidebar {
   position: absolute;
   top: 2rem;
-  left: 2rem;
+  right: 2rem;
   width: 240px;
-  background: hsla(var(--hsl-dark-matter), 0.8);
-  backdrop-filter: blur(12px);
+  background: hsla(var(--hsl-dark-matter), 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid hsla(var(--hsl-accent), 0.2);
   border-radius: 8px;
   padding: 1rem;
   z-index: 5;
   pointer-events: none;
   font-family: 'Inter', sans-serif;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .telemetry-header {
@@ -172,6 +170,17 @@
 .telemetry-row {
   margin-bottom: 1rem;
   transition: all 0.3s ease;
+}
+
+.energy-row .telemetry-label {
+  color: #00d4ff;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.energy-row .telemetry-value {
+  color: #00d4ff;
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
 }
 
 .telemetry-label {
@@ -199,7 +208,16 @@
   height: 100%;
   width: 0%;
   background: hsl(var(--hsl-accent));
-  transition: width 0.3s ease;
+  transition: width 0.1s linear;
+  /* Faster transitions for physics */
+}
+
+.telemetry-sparkline {
+  height: 20px;
+  width: 100%;
+  margin-top: 0.5rem;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 4px hsla(var(--hsl-accent), 0.3));
 }
 
 /* Friction Spike / Reboot Effect */

@@ -41,7 +41,7 @@ export class HUDManager {
         if (!this.container) return;
 
         // Visibility
-        this.container.style.display = (state.isGameActive || state.isRaceFinished) ? 'block' : 'none';
+        this.container.style.display = (state.isGameActive || state.isRaceFinished) ? 'flex' : 'none';
 
         // Feedback State
         this.container.classList.remove('correct', 'wrong');

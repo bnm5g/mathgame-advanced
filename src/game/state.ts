@@ -48,6 +48,13 @@ export class GameStateManager {
         this.engine = engine;
     }
 
+    /**
+     * Gets the latest state from the physics engine
+     */
+    public getStateFromEngine(): IPhysicsState | null {
+        return this.engine ? this.engine.getState() : null;
+    }
+
     private resetState(): void {
         this.state = {
             currentQuestion: null,

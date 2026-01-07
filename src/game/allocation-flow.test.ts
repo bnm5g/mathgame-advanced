@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GameStateManager } from './state';
+import { PhysicsEngine } from './physics';
 
 describe('Strategic Allocation Integration', () => {
     let stateManager: GameStateManager;
@@ -7,6 +8,7 @@ describe('Strategic Allocation Integration', () => {
     beforeEach(() => {
         vi.useFakeTimers();
         stateManager = new GameStateManager();
+        stateManager.setEngine(new PhysicsEngine());
         stateManager.setQuestions([{
             id: 'q1',
             text: '2+2',
