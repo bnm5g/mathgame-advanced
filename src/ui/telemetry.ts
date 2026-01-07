@@ -109,7 +109,13 @@ export class TelemetryManager {
         const height = canvas.height;
 
         ctx.clearRect(0, 0, width, height);
-        ctx.strokeStyle = '#00f3ff';
+        const colors: Record<string, string> = {
+            pos: '#00c3ff', // Matches hsl-pos
+            vel: '#00e676', // Matches hsl-vel
+            acc: '#ffc400', // Matches hsl-acc
+            jerk: '#b247ff' // Matches hsl-jerk
+        };
+        ctx.strokeStyle = colors[variable] || '#00f3ff';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
 

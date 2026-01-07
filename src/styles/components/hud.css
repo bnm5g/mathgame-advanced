@@ -6,19 +6,22 @@
   pointer-events: none;
   z-index: 10;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+  /* Align to the right of the sidebar */
   align-items: flex-end;
-  /* Tactical Dash style: Bottom Center */
   padding-bottom: 4rem;
+  padding-left: var(--sidebar-width);
+  /* Push content away from sidebar */
 }
 
 .question-container {
   pointer-events: auto;
   /* Enable clicks on question area */
-  background: hsla(var(--hsl-dark-matter), 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid hsla(var(--hsl-accent), 0.3);
+  background: hsla(var(--hsl-dark-matter), 0.85);
+  backdrop-filter: blur(var(--hud-blur));
+  -webkit-backdrop-filter: blur(var(--hud-blur));
+  border: 1px solid hsla(var(--hsl-pos), 0.3);
+  /* Default to Pos color */
   border-radius: 8px;
   padding: 1.5rem;
   width: 90%;
@@ -63,9 +66,9 @@
 .answer-option:focus,
 .answer-option.active {
   outline: none;
-  border-color: hsl(var(--hsl-accent));
-  box-shadow: 0 0 12px hsla(var(--hsl-accent), 0.6);
-  background: hsla(var(--hsl-accent), 0.1);
+  border-color: hsl(var(--hsl-pos));
+  box-shadow: 0 0 12px hsla(var(--hsl-pos), 0.6);
+  background: hsla(var(--hsl-pos), 0.1);
 }
 
 /* Key hint badges */
@@ -76,7 +79,7 @@
   left: 6px;
   font-size: 0.7rem;
   opacity: 0.5;
-  color: hsl(var(--hsl-accent));
+  color: hsl(var(--hsl-pos));
 }
 
 @keyframes slideUp {
@@ -93,8 +96,8 @@
 
 /* Feedback States */
 .hud-overlay.correct .question-container {
-  border-color: #00ff88;
-  box-shadow: 0 0 30px rgba(0, 255, 136, 0.3), 0 4px 24px rgba(0, 0, 0, 0.4);
+  border-color: hsl(var(--hsl-success));
+  box-shadow: 0 0 30px hsla(var(--hsl-success), 0.3), 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .hud-overlay.wrong .question-container {
@@ -103,21 +106,21 @@
 }
 
 .hud-overlay.correct .question-text {
-  color: #00ff88;
+  color: hsl(var(--hsl-success));
 }
 
 .hud-overlay.wrong .question-text {
-  color: #ff3366;
+  color: hsl(var(--hsl-error));
 }
 
 /* Allocation Phase */
 .hud-overlay.allocation-phase .question-container {
-  border-color: #00d4ff;
-  box-shadow: 0 0 30px rgba(0, 212, 255, 0.3), 0 4px 24px rgba(0, 0, 0, 0.4);
+  border-color: hsl(var(--hsl-vel));
+  box-shadow: 0 0 30px hsla(var(--hsl-vel), 0.3), 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .hud-overlay.allocation-phase .question-text {
-  color: #00d4ff;
+  color: hsl(var(--hsl-vel));
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 2px;
@@ -126,7 +129,7 @@
 /* Sidebar Investment Flashes */
 @keyframes investmentFlash {
   0% {
-    background: hsla(var(--hsl-accent), 0.5);
+    background: hsla(var(--hsl-pos), 0.5);
     transform: scale(1.05);
   }
 
@@ -143,28 +146,29 @@
 /* Telemetry Sidebar - Moved to Top Right per SpaceX UX */
 .telemetry-sidebar {
   position: absolute;
-  top: 2rem;
-  right: 2rem;
-  width: 240px;
-  background: hsla(var(--hsl-dark-matter), 0.82);
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: hsla(var(--hsl-dark-matter), 0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid hsla(var(--hsl-accent), 0.2);
-  border-radius: 8px;
-  padding: 1rem;
+  border-right: 1px solid hsla(var(--hsl-pos), 0.2);
+  padding: 2rem 1.5rem;
   z-index: 5;
   pointer-events: none;
   font-family: 'Inter', sans-serif;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
 }
 
 .telemetry-header {
-  font-size: 0.7rem;
-  color: hsla(var(--hsl-accent), 0.6);
-  letter-spacing: 2px;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid hsla(var(--hsl-accent), 0.1);
-  padding-bottom: 0.5rem;
+  font-size: 0.8rem;
+  color: hsla(var(--hsl-pos), 0.6);
+  letter-spacing: 3px;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid hsla(var(--hsl-pos), 0.1);
+  padding-bottom: 0.75rem;
+  font-weight: 700;
 }
 
 .telemetry-row {
@@ -173,14 +177,14 @@
 }
 
 .energy-row .telemetry-label {
-  color: #00d4ff;
+  color: hsl(var(--hsl-vel));
   font-weight: 700;
   opacity: 1;
 }
 
 .energy-row .telemetry-value {
-  color: #00d4ff;
-  text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+  color: hsl(var(--hsl-vel));
+  text-shadow: 0 0 8px hsla(var(--hsl-vel), 0.4);
 }
 
 .telemetry-label {
@@ -207,9 +211,8 @@
 .telemetry-bar-fill {
   height: 100%;
   width: 0%;
-  background: hsl(var(--hsl-accent));
+  background: hsl(var(--var-color, var(--hsl-pos)));
   transition: width 0.1s linear;
-  /* Faster transitions for physics */
 }
 
 .telemetry-sparkline {
@@ -217,20 +220,46 @@
   width: 100%;
   margin-top: 0.5rem;
   opacity: 0.5;
-  filter: drop-shadow(0 0 4px hsla(var(--hsl-accent), 0.3));
+  filter: drop-shadow(0 0 4px hsla(var(--var-color, var(--hsl-pos)), 0.3));
+}
+
+/* Individual Row Colors via CSS variables */
+.telemetry-row[data-var="pos"] {
+  --var-color: var(--hsl-pos);
+}
+
+.telemetry-row[data-var="vel"] {
+  --var-color: var(--hsl-vel);
+}
+
+.telemetry-row[data-var="acc"] {
+  --var-color: var(--hsl-acc);
+}
+
+.telemetry-row[data-var="jerk"] {
+  --var-color: var(--hsl-jerk);
+}
+
+.telemetry-row .telemetry-label {
+  color: hsl(var(--var-color, 255, 255, 255));
+  opacity: 0.8;
+}
+
+.telemetry-row .telemetry-value {
+  color: hsl(var(--var-color, 255, 255, 255));
 }
 
 /* Friction Spike / Reboot Effect */
 .hud-overlay.friction-spike .question-container {
-  border-color: #ff0000;
-  box-shadow: 0 0 40px rgba(255, 0, 0, 0.4), 0 4px 24px rgba(0, 0, 0, 0.4);
+  border-color: hsl(var(--hsl-error));
+  box-shadow: 0 0 40px hsla(var(--hsl-error), 0.4), 0 4px 24px rgba(0, 0, 0, 0.4);
   animation: rebootFlicker 0.2s infinite, shake 0.5s ease-in-out infinite;
 }
 
 .hud-overlay.friction-spike .question-text {
-  color: #ff0000;
+  color: hsl(var(--hsl-error));
   font-weight: 800;
-  text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  text-shadow: 0 0 10px hsla(var(--hsl-error), 0.5);
   letter-spacing: 3px;
 }
 

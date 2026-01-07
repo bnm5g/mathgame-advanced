@@ -8,11 +8,24 @@
   color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #0b0e14;
-  /* SpaceX Dark Matter */
-
-  --neon-blue: #00f3ff;
-  --hsl-dark-matter: 220, 20%, 10%;
-  --hsl-accent: 190, 100%, 50%;
+  /* SpaceX Dark Matter Foundation */
+  --hsl-dark-matter: 230, 15%, 7%;
+  --color-bg: #0b0e14;
+  
+  /* Semantic Physics Colors (SpaceX Palette) */
+  --hsl-pos: 200, 100%, 50%;    /* Neon Blue */
+  --hsl-vel: 150, 100%, 45%;    /* Emerald Green */
+  --hsl-acc: 45, 100%, 50%;     /* Cyber Yellow */
+  --hsl-jerk: 280, 100%, 65%;   /* Electric Purple */
+  
+  /* Feedback & States */
+  --hsl-success: 160, 100%, 40%;
+  --hsl-error: 0, 100%, 50%;
+  --hsl-steel: 230, 10%, 40%;
+  
+  /* Layout Tokens */
+  --sidebar-width: 280px;
+  --hud-blur: 12px;
 }
 
 * {

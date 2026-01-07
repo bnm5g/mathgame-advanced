@@ -141,6 +141,12 @@ export class GameStateManager {
             setTimeout(() => {
                 this.nextQuestion();
             }, GAME_CONSTANTS.FEEDBACK_DELAY_MS);
+
+            // Ensure the UI updates when the friction spike duration expires
+            // This prevents the "SYSTEM REBOOT" message from hanging until the next interaction
+            setTimeout(() => {
+                this.notify();
+            }, GAME_CONSTANTS.FRICTION_SPIKE_DURATION_MS + 10);
         }
     }
 

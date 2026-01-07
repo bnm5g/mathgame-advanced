@@ -1,3 +1,5 @@
+import { GAME_CONSTANTS } from './constants';
+
 export interface IPhysicsState {
     pos: number;
     vel: number;
@@ -19,8 +21,8 @@ export class PhysicsEngine {
 
     public update(dt: number, isFrictionActive: boolean = false): void {
         if (isFrictionActive) {
-            this.state.acc *= 0.95;
-            this.state.vel *= 0.95;
+            this.state.acc *= GAME_CONSTANTS.FRICTION_COEFFICIENT;
+            this.state.vel *= GAME_CONSTANTS.FRICTION_COEFFICIENT;
         }
 
         // Derivative Cascade
