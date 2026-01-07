@@ -1,0 +1,64 @@
+{
+    "questions": [
+        {
+            "id": "calc_001",
+            "text": "What is the derivative of f(x) = x²?",
+            "answers": [
+                "2x",
+                "x",
+                "2",
+                "x²"
+            ],
+            "correctIndex": 0,
+            "points": 10
+        },
+        {
+            "id": "calc_002",
+            "text": "What is the derivative of f(x) = 3x + 5?",
+            "answers": [
+                "3",
+                "5",
+                "3x",
+                "0"
+            ],
+            "correctIndex": 0,
+            "points": 10
+        },
+        {
+            "id": "calc_003",
+            "text": "What is the derivative of f(x) = sin(x)?",
+            "answers": [
+                "-cos(x)",
+                "cos(x)",
+                "sin(x)",
+                "-sin(x)"
+            ],
+            "correctIndex": 1,
+            "points": 15
+        },
+        {
+            "id": "calc_004",
+            "text": "Power Rule: d/dx (x^n) = ?",
+            "answers": [
+                "n*x^(n-1)",
+                "x^(n+1)/n",
+                "n*x",
+                "x^(n-1)"
+            ],
+            "correctIndex": 0,
+            "points": 10
+        },
+        {
+            "id": "calc_005",
+            "text": "What is the derivative of a constant (c)?",
+            "answers": [
+                "1",
+                "c",
+                "x",
+                "0"
+            ],
+            "correctIndex": 3,
+            "points": 5
+        }
+    ]
+}

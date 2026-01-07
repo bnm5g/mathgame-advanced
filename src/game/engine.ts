@@ -1,4 +1,6 @@
 import { PhysicsEngine } from './physics';
+import { gameStateManager } from './state';
+import { GAME_CONSTANTS } from './constants';
 
 export class GameEngine {
     private lastTime: number = 0;
@@ -51,13 +53,43 @@ export class GameEngine {
         // Fixed Timestep Physics Updates with small epsilon to handle float precision
         const EPSILON = 0.0001;
         while (this.accumulator >= this.FIXED_DT - EPSILON) {
-            this.physics.update(this.FIXED_DT);
+            const isFrictionActive = gameStateManager.isFrictionSpikeActive();
+            this.physics.update(this.FIXED_DT, isFrictionActive);
+
+            // Check for Finish Line
+            if (this.physics.getState().pos >= GAME_CONSTANTS.FINISH_LINE_DISTANCE) {
+                gameStateManager.setState({
+                    isRaceFinished: true,
+                    raceEndTime: Date.now(),
+                    isGameActive: false
+                });
+                this.stop();
+                return;
+            }
+
             this.accumulator -= this.FIXED_DT;
             if (this.accumulator < 0) this.accumulator = 0; // Prevent negative drift
             this.notify(this.FIXED_DT);
         }
 
         this.animationFrameId = requestAnimationFrame(this.loop);
+    }
+
+    /**
+     * Executes a single physics tick for testing
+     */
+    public tick(dt: number = 0.1): void {
+        const isFrictionActive = gameStateManager.isFrictionSpikeActive();
+        this.physics.update(dt, isFrictionActive);
+
+        if (this.physics.getState().pos >= GAME_CONSTANTS.FINISH_LINE_DISTANCE) {
+            gameStateManager.setState({
+                isRaceFinished: true,
+                raceEndTime: Date.now(),
+                isGameActive: false
+            });
+            this.stop();
+        }
     }
 
     private notify(dt: number): void {

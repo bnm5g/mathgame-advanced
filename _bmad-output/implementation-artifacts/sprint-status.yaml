@@ -26,11 +26,11 @@ development_status:
   epic-1: in-progress
   1-1-project-skeleton-game-loop: done
   1-2-physics-engine-foundation: done
-  1-3-math-hud-keyboard-input: backlog
-  1-4-answer-evaluation-value-granting: backlog
-  1-5-strategic-allocation: backlog
-  1-6-friction-spike-penalty: backlog
-  1-7-race-state-win-condition: backlog
+  1-3-math-hud-keyboard-input: done
+  1-4-answer-evaluation-value-granting: done
+  1-5-strategic-allocation: done
+  1-6-friction-spike-penalty: done
+  1-7-race-state-win-condition: done
   epic-1-retrospective: optional
 
   epic-2: backlog

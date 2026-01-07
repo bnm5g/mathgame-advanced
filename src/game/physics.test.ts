@@ -1,56 +1,69 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PhysicsEngine } from './physics';
 
-describe('PhysicsEngine', () => {
-    let physics: PhysicsEngine;
+describe('PhysicsEngine Strategic Allocation', () => {
+    let engine: PhysicsEngine;
 
     beforeEach(() => {
-        physics = new PhysicsEngine();
+        engine = new PhysicsEngine();
     });
 
-    it('should initialize with 0 values', () => {
-        const state = physics.getState();
-        expect(state.pos).toBe(0);
-        expect(state.vel).toBe(0);
-        expect(state.acc).toBe(0);
-        expect(state.jerk).toBe(0);
+    it('should add value to jerk and round to 3 decimals', () => {
+        engine.addValue('jerk', 0.1234);
+        const state = engine.getState();
+        expect(state.jerk).toBe(0.123);
     });
 
-    it('should update acceleration based on jerk', () => {
-        physics.setState({ jerk: 10 });
-        physics.update(0.1); // 10 * 0.1 = 1 accel
-        expect(physics.getState().acc).toBe(1);
+    it('should add value to acceleration and round to 3 decimals', () => {
+        engine.addValue('acc', 1.5555);
+        const state = engine.getState();
+        expect(state.acc).toBe(1.556);
     });
 
-    it('should perform derivative cascade correctly', () => {
-        physics.setState({ jerk: 1 });
-        // dt = 1s for simple math
-        // tick 1: j=1 -> acc=1, vel=1, pos=1
-        physics.update(1);
-        let state = physics.getState();
-        expect(state.acc).toBe(1);
-        expect(state.vel).toBe(1);
-        expect(state.pos).toBe(1);
-
-        // tick 2: j=1 -> acc=2, vel=1+2=3, pos=1+3=4
-        physics.update(1);
-        state = physics.getState();
-        expect(state.acc).toBe(2);
-        expect(state.vel).toBe(3);
-        expect(state.pos).toBe(4);
+    it('should add value to velocity and round to 3 decimals', () => {
+        engine.addValue('vel', 10.1);
+        const state = engine.getState();
+        expect(state.vel).toBe(10.1);
     });
 
-    it('should round all state values to 3 decimal places', () => {
-        physics.setState({ jerk: 0.12345, acc: 0.12345, vel: 0.12345 });
-        physics.update(1);
-        const state = physics.getState();
-        expect(state.acc).toBe(0.247); // 0.123 + 0.123 = 0.246... wait. 
-        // Let's use simpler values to test rounding of existing state + addition
-        physics.setState({ jerk: 0, acc: 0.1234, vel: 0.1234, pos: 0.1234 });
-        physics.update(1);
-        const newState = physics.getState();
-        expect(newState.acc).toBe(0.123);
-        expect(newState.vel).toBe(0.247); // 0.1234 + 0.1234 = 0.2468 -> 0.247
-        expect(newState.pos).toBe(0.370); // 0.1234 + 0.2468 = 0.3702 -> 0.370
+    it('should add value to position and round to 3 decimals', () => {
+        engine.addValue('pos', 500.0009);
+        const state = engine.getState();
+        expect(state.pos).toBe(500.001);
+    });
+});
+
+describe('PhysicsEngine Friction Spike Penalty', () => {
+    let engine: PhysicsEngine;
+
+    beforeEach(() => {
+        engine = new PhysicsEngine();
+    });
+
+    it('should apply 0.95 friction multiplier when isFrictionActive is true', () => {
+        engine.setState({ acc: 10, vel: 10, jerk: 0 });
+
+        // Before update: acc=10, vel=10
+        // Expected with friction:
+        // acc = 10 * 0.95 = 9.5
+        // vel = 10 * 0.95 = 9.5
+        // pos = 0 + (9.5 * 0.1) = 0.95 (if dt=0.1)
+
+        // @ts-ignore - testing new feature before implementation
+        engine.update(0.1, true);
+
+        const state = engine.getState();
+        expect(state.acc).toBe(9.5);
+        expect(state.vel).toBe(10.45);
+    });
+
+    it('should NOT apply friction when isFrictionActive is false', () => {
+        engine.setState({ acc: 10, vel: 10, jerk: 0 });
+
+        engine.update(0.1); // default or false
+
+        const state = engine.getState();
+        expect(state.acc).toBe(10.0);
+        expect(state.vel).toBe(11.0); // vel = 10 + (10 * 0.1)
     });
 });

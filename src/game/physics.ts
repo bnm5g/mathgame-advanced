@@ -17,7 +17,12 @@ export class PhysicsEngine {
         };
     }
 
-    public update(dt: number): void {
+    public update(dt: number, isFrictionActive: boolean = false): void {
+        if (isFrictionActive) {
+            this.state.acc *= 0.95;
+            this.state.vel *= 0.95;
+        }
+
         // Derivative Cascade
         // da = j * dt
         this.state.acc += this.state.jerk * dt;
@@ -30,6 +35,11 @@ export class PhysicsEngine {
         this.state.acc = this.round(this.state.acc);
         this.state.vel = this.round(this.state.vel);
         this.state.pos = this.round(this.state.pos);
+    }
+
+    public addValue(variable: keyof IPhysicsState, value: number): void {
+        this.state[variable] += value;
+        this.state[variable] = this.round(this.state[variable]);
     }
 
     public getState(): IPhysicsState {

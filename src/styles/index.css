@@ -1,4 +1,11 @@
+@import './components/hud.css';
+
 /* Main CSS Variables */
 :root {
   --neon-blue: #00f3ff;
+
+  /* SpaceX Minimalist Palette */
+  --hsl-dark-matter: 220, 20%, 10%;
+  --hsl-accent: 190, 100%, 50%;
+  /* Cyan-like */
 }
