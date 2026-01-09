@@ -33,11 +33,11 @@ development_status:
   1-7-race-state-win-condition: done
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-firebase-integration-auth: backlog
-  2-2-room-creation-hosting: backlog
-  2-3-room-joining-guest-access: backlog
-  2-4-real-time-state-sync: backlog
+  epic-2: in-progress
+  2-1-firebase-integration-auth: done
+  2-2-room-creation-hosting: done
+  2-3-room-joining-guest-access: done
+  2-4-real-time-state-sync: review
   2-5-race-start-coordination: backlog
   2-6-server-authoritative-conflict-resolution: backlog
   2-7-disconnection-handling: backlog

@@ -21,6 +21,7 @@ export interface GameState {
     isRaceFinished: boolean;
     raceStartTime: number;
     raceEndTime: number | null;
+    lastAllocatedIndex: number | null;
 }
 
 export type StateListener = (state: GameState) => void;
@@ -66,7 +67,8 @@ export class GameStateManager {
             frictionSpikeEnd: 0,
             isRaceFinished: false,
             raceStartTime: 0,
-            raceEndTime: null
+            raceEndTime: null,
+            lastAllocatedIndex: null
         };
         this.notify();
     }
@@ -172,12 +174,19 @@ export class GameStateManager {
             return;
         }
 
+        // Prevent consecutive allocation to the same variable
+        if (answerIndex === this.state.lastAllocatedIndex) {
+            console.warn(`GameStateManager: Cannot allocate to index ${answerIndex} twice in a row.`);
+            return;
+        }
+
         const targetVar = PHYSICS_VARIABLES[answerIndex];
 
         if (targetVar) {
             this.engine.addValue(targetVar, this.state.holdingValue);
             this.state.holdingValue = 0;
             this.state.isAllocationActive = false;
+            this.state.lastAllocatedIndex = answerIndex;
 
             this.notify();
 

@@ -35,8 +35,36 @@ describe('Strategic Allocation Integration', () => {
         expect(stateManager.getState().holdingValue).toBe(0);
         expect(stateManager.getState().isAllocationActive).toBe(false);
 
-        // Check physics engine was updated
-        // Since engine is private, we check the effect on a subsequent update if exposed or just check flags
         // For this test, verifying state manager flow is the priority
+    });
+
+    it('should prevent consecutive allocation to the same variable', () => {
+        // 1. Solve and enter Allocation Phase
+        stateManager.submitAnswer(3);
+        vi.advanceTimersByTime(1500);
+        expect(stateManager.getState().isAllocationActive).toBe(true);
+
+        // 2. Allocate to Jerk (index 3)
+        stateManager.allocatePoints(3);
+        expect(stateManager.getState().lastAllocatedIndex).toBe(3);
+
+        // 3. Solve next question and enter Allocation Phase again
+        vi.advanceTimersByTime(500); // Wait for allocation delay
+        stateManager.submitAnswer(3);
+        vi.advanceTimersByTime(1500);
+        expect(stateManager.getState().isAllocationActive).toBe(true);
+
+        // 4. Try to allocate to Jerk again (should be ignored)
+        const initialHolding = stateManager.getState().holdingValue;
+        stateManager.allocatePoints(3);
+
+        // Should still be active and have points (because JERK was ignored)
+        expect(stateManager.getState().isAllocationActive).toBe(true);
+        expect(stateManager.getState().holdingValue).toBe(initialHolding);
+
+        // 5. Allocate to Acceleration instead (index 2) - should work
+        stateManager.allocatePoints(2);
+        expect(stateManager.getState().isAllocationActive).toBe(false);
+        expect(stateManager.getState().lastAllocatedIndex).toBe(2);
     });
 });

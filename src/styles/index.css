@@ -1,4 +1,6 @@
 @import './components/hud.css';
+@import './components/lobby.css';
+
 
 :root {
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -11,21 +13,39 @@
   /* SpaceX Dark Matter Foundation */
   --hsl-dark-matter: 230, 15%, 7%;
   --color-bg: #0b0e14;
-  
+
   /* Semantic Physics Colors (SpaceX Palette) */
-  --hsl-pos: 200, 100%, 50%;    /* Neon Blue */
-  --hsl-vel: 150, 100%, 45%;    /* Emerald Green */
-  --hsl-acc: 45, 100%, 50%;     /* Cyber Yellow */
-  --hsl-jerk: 280, 100%, 65%;   /* Electric Purple */
-  
+  --hsl-pos: 200, 100%, 50%;
+  /* Neon Blue */
+  --hsl-vel: 150, 100%, 45%;
+  /* Emerald Green */
+  --hsl-acc: 45, 100%, 50%;
+  /* Cyber Yellow */
+  --hsl-jerk: 280, 100%, 65%;
+  /* Electric Purple */
+
   /* Feedback & States */
   --hsl-success: 160, 100%, 40%;
   --hsl-error: 0, 100%, 50%;
   --hsl-steel: 230, 10%, 40%;
-  
+
   /* Layout Tokens */
   --sidebar-width: 280px;
   --hud-blur: 12px;
+
+  /* Utility Colors (Mapped from Semantic) */
+  --neon-blue: hsl(var(--hsl-pos));
+  --neon-green: hsl(var(--hsl-vel));
+  --neon-yellow: hsl(var(--hsl-acc));
+  --neon-purple: hsl(var(--hsl-jerk));
+  --neon-white: #ffffff;
+
+  /* UI Tokens */
+  --surface-dark: #12151b;
+  --text-main: #ffffff;
+  --text-dim: #8b9bb4;
+  --border-dim: #2a303c;
+  --font-mono: 'Courier New', monospace;
 }
 
 * {

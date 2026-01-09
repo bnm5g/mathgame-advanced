@@ -1,0 +1,140 @@
+/* Lobby Overlay */
+#lobby-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 10, 15, 0.95);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-main);
+    backdrop-filter: blur(10px);
+}
+
+.lobby-card {
+    background: var(--surface-dark);
+    border: 1px solid var(--neon-blue);
+    padding: 2rem;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+    text-align: center;
+}
+
+.lobby-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: var(--neon-blue);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.lobby-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+}
+
+.input-group label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+}
+
+.lobby-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-dim);
+    padding: 0.8rem;
+    color: var(--text-main);
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.lobby-input:focus {
+    border-color: var(--neon-blue);
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+.lobby-btn {
+    background: var(--neon-blue);
+    color: #000;
+    border: none;
+    padding: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.lobby-btn:hover {
+    background: var(--neon-white);
+    transform: translateY(-2px);
+}
+
+.lobby-btn:disabled {
+    opacity: 0.5;
+    cursor: allowed;
+    transform: none;
+}
+
+.divider {
+    margin: 2rem 0;
+    height: 1px;
+    background: var(--border-dim);
+    position: relative;
+}
+
+.divider span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--surface-dark);
+    padding: 0 1rem;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+}
+
+/* Waiting Room */
+.room-code-display {
+    font-size: 3rem;
+    font-family: var(--font-mono);
+    color: var(--neon-green);
+    margin: 2rem 0;
+    letter-spacing: 5px;
+    border: 2px dashed var(--border-dim);
+    padding: 1rem;
+}
+
+.status-text {
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}

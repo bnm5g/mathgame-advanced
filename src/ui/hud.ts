@@ -85,10 +85,19 @@ export class HUDManager {
             const allocationChoices = PHYSICS_VARIABLES.map(v => v.toUpperCase() === 'POS' ? 'POSITION' : v.toUpperCase() === 'VEL' ? 'VELOCITY' : v.toUpperCase());
             buttons.forEach((btn, index) => {
                 btn.textContent = allocationChoices[index] || '';
+
+                // Disable if it's the same as the last allocated index
+                const isLastAllocated = state.lastAllocatedIndex === index;
+                (btn as HTMLButtonElement).disabled = isLastAllocated;
+                (btn as HTMLElement).classList.toggle('disabled-choice', isLastAllocated);
             });
         } else if (state.currentQuestion) {
             if (questionText) questionText.textContent = state.currentQuestion.text;
-            buttons.forEach(btn => (btn as HTMLElement).style.visibility = 'visible');
+            buttons.forEach(btn => {
+                (btn as HTMLElement).style.visibility = 'visible';
+                (btn as HTMLButtonElement).disabled = false;
+                (btn as HTMLElement).classList.remove('disabled-choice');
+            });
 
             buttons.forEach((btn, index) => {
                 const answer = state.currentQuestion?.answers[index];

@@ -42,6 +42,11 @@ export class InputManager {
             return;
         }
 
+        // Ignore input if user is typing in a form field
+        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+            return;
+        }
+
         // Prevent default browser actions for game keys
         event.preventDefault();
 
