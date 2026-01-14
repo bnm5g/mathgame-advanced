@@ -37,8 +37,8 @@ development_status:
   2-1-firebase-integration-auth: done
   2-2-room-creation-hosting: done
   2-3-room-joining-guest-access: done
-  2-4-real-time-state-sync: review
-  2-5-race-start-coordination: backlog
+  2-4-real-time-state-sync: done
+  2-5-race-start-coordination: done
   2-6-server-authoritative-conflict-resolution: backlog
   2-7-disconnection-handling: backlog
   epic-2-retrospective: optional

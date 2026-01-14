@@ -11,7 +11,7 @@ vi.mock('firebase/database', () => ({
 
 describe('SyncManager', () => {
     let syncManager: SyncManager;
-    let mockDatabase: any;
+    let mockDatabase: import('firebase/database').Database;
 
     beforeEach(async () => {
         const { ref, set, onValue, off } = await import('firebase/database');
@@ -23,10 +23,10 @@ describe('SyncManager', () => {
         vi.mocked(off).mockClear();
 
         // Setup default return values
-        vi.mocked(ref).mockReturnValue('mock-ref' as any);
-        vi.mocked(set).mockResolvedValue(undefined as any);
+        vi.mocked(ref).mockReturnValue('mock-ref' as unknown as import('firebase/database').DatabaseReference);
+        vi.mocked(set).mockResolvedValue(undefined);
 
-        mockDatabase = {}; // Mock database object
+        mockDatabase = {} as import('firebase/database').Database;
         syncManager = new SyncManager(mockDatabase);
     });
 

@@ -1,4 +1,4 @@
-import { ref, set, runTransaction, serverTimestamp } from 'firebase/database';
+import { ref, set, runTransaction, serverTimestamp, onValue, update } from 'firebase/database';
 import { database } from './firebase';
 import { auth } from './auth';
 
@@ -114,11 +114,46 @@ export class RoomManager {
 
                 return currentData;
             });
-        } catch (error: any) {
+        } catch (error) {
             console.error('Join failed:', error);
             throw error;
         }
     }
+
+    /**
+     * Start the race (Host only)
+     * Updates status to COUNTDOWN
+     */
+    async startRace(roomId: string): Promise<void> {
+        if (!auth.currentUser) throw new Error('User must be authenticated.');
+
+        const roomRef = ref(database, `rooms/${roomId}`);
+        try {
+            // In a real app we'd verify host privilege again here via rules or txn
+            // For MVP, simple update is fine
+            await update(roomRef, {
+                status: 'COUNTDOWN'
+            });
+        } catch (error) {
+            console.error('Failed to start race:', error);
+            throw new Error('Failed to start race');
+        }
+    }
+
+    /**
+     * Listen for room status changes
+     */
+    listenToStatus(roomId: string, callback: (status: RoomData['status']) => void): () => void {
+        const statusRef = ref(database, `rooms/${roomId}/status`);
+
+        return onValue(statusRef, (snapshot) => {
+            const status = snapshot.val();
+            if (status) {
+                callback(status);
+            }
+        });
+    }
 }
+
 
 export const roomManager = new RoomManager();

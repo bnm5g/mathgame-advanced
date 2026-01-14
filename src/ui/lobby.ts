@@ -1,5 +1,7 @@
 import { roomManager } from '../multiplayer/rooms';
 import { startMultiplayerSync } from '../main';
+import { CountdownOverlay } from './countdown';
+import { gameStateManager } from '../game/state';
 
 export class LobbyManager {
     private container: HTMLElement | null = null;
@@ -111,13 +113,58 @@ export class LobbyManager {
                 await roomManager.joinRoom(roomId, password);
                 startMultiplayerSync(roomId);
                 this.showWaitingRoom(roomId, false);
-            } catch (error: any) {
+                this.setupRaceCoordination(roomId, false);
+            } catch (error) {
                 console.error(error);
-                alert(error.message || 'Failed to join room');
+                const message = error instanceof Error ? error.message : 'Failed to join room';
+                alert(message);
                 (joinBtn as HTMLButtonElement).disabled = false;
                 joinBtn!.textContent = 'Join Room';
             }
         });
+    }
+
+    private statusUnsubscribe: (() => void) | null = null;
+
+    private setupRaceCoordination(roomId: string, isHost: boolean): void {
+        // Cleanup previous listener if exists
+        if (this.statusUnsubscribe) {
+            this.statusUnsubscribe();
+            this.statusUnsubscribe = null;
+        }
+
+        // 1. Listen for Start Button (Host only)
+        if (isHost) {
+            const startBtn = document.getElementById('btn-start-race');
+            startBtn?.addEventListener('click', async () => {
+                try {
+                    startBtn.textContent = 'Starting...';
+                    (startBtn as HTMLButtonElement).disabled = true;
+                    await roomManager.startRace(roomId);
+                } catch (e) {
+                    console.error(e);
+                    alert('Failed to start race');
+                    startBtn.textContent = 'Start Race';
+                    (startBtn as HTMLButtonElement).disabled = false;
+                }
+            });
+        }
+
+        // 2. Listen for Room Status Changes
+        this.statusUnsubscribe = roomManager.listenToStatus(roomId, (status) => {
+            if (status === 'COUNTDOWN') {
+                this.handleCountdownStart();
+            }
+        });
+    }
+
+    private handleCountdownStart(): void {
+        const countdown = new CountdownOverlay(() => {
+            // On Countdown Complete:
+            this.hide(); // Hide Lobby
+            gameStateManager.startRace(); // Start Game Physics
+        });
+        countdown.start();
     }
 
     private bindCreateEvents(): void {
@@ -136,6 +183,7 @@ export class LobbyManager {
                 const roomId = await roomManager.createRoom(password);
                 startMultiplayerSync(roomId);
                 this.showWaitingRoom(roomId, true);
+                this.setupRaceCoordination(roomId, true);
             } catch (error) {
                 console.error(error);
                 alert('Failed to create room. See console.');
@@ -147,6 +195,10 @@ export class LobbyManager {
 
     public hide(): void {
         if (this.container) this.container.style.display = 'none';
+        if (this.statusUnsubscribe) {
+            this.statusUnsubscribe();
+            this.statusUnsubscribe = null;
+        }
     }
 
     public show(): void {

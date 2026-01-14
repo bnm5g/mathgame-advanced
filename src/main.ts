@@ -38,7 +38,7 @@ const raceTrackRenderer = new RaceTrackRenderer();
 const syncManager = new SyncManager(database);
 
 import { LobbyManager } from './ui/lobby';
-const lobbyManager = new LobbyManager();
+export const lobbyManager = new LobbyManager();
 
 // TODO: Start sync when joining/creating a room
 // For now, this is a placeholder - will be triggered by LobbyManager

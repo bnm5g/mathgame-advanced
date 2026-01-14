@@ -1,12 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { RoomManager } from './rooms';
-import { auth } from './auth';
+// import { auth } from './auth';
 
 // Mock Firebase
 vi.mock('firebase/database', () => ({
     getDatabase: vi.fn(),
-    ref: vi.fn(),
+    ref: vi.fn(() => ({ key: 'mock-ref' })),
     set: vi.fn(),
+    update: vi.fn(),
+    onValue: vi.fn(),
     runTransaction: vi.fn(),
     serverTimestamp: vi.fn(() => ({}))
 }));
@@ -57,7 +59,7 @@ describe('RoomManager', () => {
             const { runTransaction } = await import('firebase/database');
 
             // Mock transaction to return current data with a password
-            vi.mocked(runTransaction).mockImplementation(async (ref, updateFunction: any) => {
+            vi.mocked(runTransaction).mockImplementation(async (_ref, updateFunction: any) => {
                 const currentData = { password: 'correct-password', players: {} };
                 const result = updateFunction(currentData);
                 return { committed: true, snapshot: { val: () => result } } as any;
@@ -71,7 +73,7 @@ describe('RoomManager', () => {
             const manager = new RoomManager();
             const { runTransaction } = await import('firebase/database');
 
-            vi.mocked(runTransaction).mockImplementation(async (ref, updateFunction: any) => {
+            vi.mocked(runTransaction).mockImplementation(async (_ref, updateFunction: any) => {
                 const currentData = {
                     password: 'password',
                     players: { 'p1': {}, 'p2': {}, 'p3': {}, 'p4': {} }
@@ -82,6 +84,32 @@ describe('RoomManager', () => {
 
             await expect(manager.joinRoom('ROOMID', 'password'))
                 .rejects.toThrow('Room Full');
+        });
+    });
+
+    describe('Race Coordination', () => {
+        it('should update room status to COUNTDOWN when host starts race', async () => {
+            const { update } = await import('firebase/database');
+            const manager = new RoomManager();
+            const roomId = 'TEST123';
+
+            // Mock user as host
+            manager.createRoom('password');
+
+            await manager.startRace(roomId);
+
+            expect(update).toHaveBeenCalledWith(
+                expect.any(Object), // Ref check
+                { status: 'COUNTDOWN' }
+            );
+        });
+
+        it('should throw error if startRace fails', async () => {
+            const { update } = await import('firebase/database');
+            const manager = new RoomManager();
+            vi.mocked(update).mockRejectedValueOnce(new Error('Firebase error'));
+
+            await expect(manager.startRace('TEST123')).rejects.toThrow('Failed to start race');
         });
     });
 });

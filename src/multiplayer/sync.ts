@@ -99,7 +99,7 @@ export class SyncManager {
                 currentState: state,
                 lastUpdateTime: Date.now(),
             });
-            console.log(`[SyncManager] Updated remote player ${uid} at pos ${state.pos.toFixed(2)}`);
+            // console.log(`[SyncManager] Updated remote player ${uid} at pos ${state.pos.toFixed(2)}`);
         } else {
             // New remote player
             this.remotePlayers.set(uid, {
@@ -108,7 +108,7 @@ export class SyncManager {
                 currentState: state,
                 lastUpdateTime: Date.now(),
             });
-            console.log(`[SyncManager] New remote player detected: ${uid}`);
+            // console.log(`[SyncManager] New remote player detected: ${uid}`);
         }
     }
 
