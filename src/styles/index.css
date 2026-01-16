@@ -65,4 +65,40 @@ body {
   width: 100%;
   height: 100%;
   position: relative;
+  display: flex;
+  /* Use flexbox for layout */
+  flex-direction: row;
+  /* Sidebar on right? Or maybe left? */
+}
+
+#game-app {
+  flex-grow: 1;
+  /* Take remaining space */
+  position: relative;
+  overflow: hidden;
+  /* Prevent spillover */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#game-container {
+  /* Ensure the canvas is centered */
+  position: relative;
+}
+
+/* Ensure Telemetry Sidebar doesn't overlap */
+/* Assuming the sidebar is a direct child of body or app */
+/* If Telemetry is fixed position, we need padding on game-app */
+/* Let's assume it is absolute/fixed right */
+/* Story 3.3 says "Telemetry Sidebar" */
+/* If previous implementation used fixed position: */
+/* We should add margin-right to #game-app equal to sidebar width */
+
+@media (min-width: 768px) {
+  #game-app {
+    padding-left: var(--sidebar-width);
+    /* Space for sidebar on the left */
+    padding-right: 0;
+  }
 }

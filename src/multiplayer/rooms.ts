@@ -1,4 +1,4 @@
-import { ref, set, runTransaction, serverTimestamp, onValue, update } from 'firebase/database';
+import { ref, set, runTransaction, serverTimestamp, onValue, update, get } from 'firebase/database';
 import { database } from './firebase';
 import { auth } from './auth';
 
@@ -78,15 +78,28 @@ export class RoomManager {
         const roomRef = ref(database, `rooms/${roomId}`);
 
         try {
-            await runTransaction(roomRef, (currentData: RoomData | null) => {
-                // 1. Check if room exists
+            // 0. Pre-fetch check (Primes cache and verifies message)
+            const snapshot = await get(roomRef);
+            if (!snapshot.exists()) {
+                throw new Error('Room not found');
+            }
+
+            const result = await runTransaction(roomRef, (currentData: RoomData | null) => {
+                // 1. Check if room exists (Optimistic check)
                 if (currentData === null) {
-                    return; // Abort, room doesn't exist
+                    // CRITICAL: Return 'null' instead of 'undefined'.
+                    // 'undefined' aborts the transaction immediately.
+                    // 'null' attempts to write null, which causes a server mismatch/retry if data actually exists.
+                    return null;
                 }
 
                 // 2. Validate Password
-                if (currentData.password !== password) {
-                    throw new Error('Invalid Credentials'); // Will abort transaction
+                // Strict check: if room has password, input must match.
+                // If input has password but room doesn't, that's fine (or restrict it?).
+                // Let's enforce strict match if room password is set.
+                if (currentData.password && currentData.password !== password) {
+                    // We must throw to abort the transaction and propagate error
+                    throw new Error('Invalid Credentials');
                 }
 
                 // 3. Check Capacity
@@ -114,6 +127,17 @@ export class RoomManager {
 
                 return currentData;
             });
+
+            if (!result.committed) {
+                // If not committed and no error thrown, it means we returned undefined (room didn't exist)
+                // Or max retries exceeded
+                throw new Error('Room does not exist or join failed');
+            }
+
+            if (!result.snapshot.exists()) {
+                throw new Error('Room no longer exists');
+            }
+
         } catch (error) {
             console.error('Join failed:', error);
             throw error;

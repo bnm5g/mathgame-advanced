@@ -1,60 +1,71 @@
 # Story 2.6: Server-Authoritative Conflict Resolution
 
-Status: backlog
+Status: ready-for-dev
+
+<!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
 ## Story
 
-As a Developer,
-I want to use server timestamps for critical events,
-So that network lag doesn't give unfair advantages.
+As a **Developer**,
+I want **to use server timestamps for critical events**,
+so that **network lag doesn't give unfair advantages**.
 
 ## Acceptance Criteria
 
-1. **Server Timestamping**
-   - **Given** a critical event (finish line crossing),
-   - **When** sent to Firebase,
-   - **Then** it must include `firebase.database.ServerValue.TIMESTAMP` instead of a local variable.
+1.  **Given** a critical event (finish line crossing),
+    **When** sent to Firebase,
+    **Then** it includes `firebase.database.ServerValue.TIMESTAMP`.
 
-2. **Winner Determination**
-   - **Given** multiple players finishing close together,
-   - **When** determining the winner,
-   - **Then** the clients/logic must compare the server timestamps, not the local receive times.
+2.  **Given** two players finishing close together,
+    **When** determining the winner,
+    **Then** the client compares the server timestamps, not the local receive times.
 
-3. **Race End Logic**
-   - **Given** a player crosses the finish line,
-   - **When** the update reaches the server,
-   - **Then** the `raceEndTime` is recorded authoritatively.
+## Tasks / Subtasks
+
+- [ ] Implement server timestamp usage in `SyncManager`
+  - [ ] Update `sendRaceFinish` (or equivalent) to include `timestamp: ServerValue.TIMESTAMP`
+  - [ ] Ensure `lastUpdate` fields use server timestamps
+- [ ] Implement conflict resolution logic in `GameStateManager`
+  - [ ] When receiving multiple finish events, sort by timestamp
+  - [ ] Determine winner based on lowest server timestamp
+- [ ] Verify timestamp precision and handling
+  - [ ] Ensure timestamps are treated as numbers and correctly compared
+- [ ] Add unit tests for conflict resolution
+  - [ ] Test sorting logic with mock timestamps
+- [ ] Add E2E tests for race finish scenarios
+  - [ ] Simulate simultaneous finishes with different latencies
 
 ## Dev Notes
 
-### Architecture Context
-- **Module**: `src/multiplayer/sync.ts` & `src/game/state.ts`
-- **Firebase**: Use `ServerValue.TIMESTAMP` (placeholder that resolves on server).
-- **Data Structure**:
-  ```typescript
-  interface PlayerState {
-      // ... existing pos, vel
-      finished: boolean;
-      finishTime: number; // Server timestamp
-  }
-  ```
+- **Firebase SDK**: Use `import { serverTimestamp } from 'firebase/database'` (or SDK equivalent `ServerValue.TIMESTAMP`). 
+  - Note: In modular SDK (v9+), use `serverTimestamp()`. Architecture mentions Firebase SDK 12.7.0, so check exact import.
+- **Architecture Compliance**:
+  - Decision: "Timestamp-based with Firebase server timestamps" (Architecture.md)
+  - "Resolve conflicts by earliest server timestamp"
+  - "Handle simultaneous finish: Lowest timestamp wins"
+- **Critical Logic**:
+  - Do NOT trust client-side `Date.now()`.
+  - Client clocks can drift. Server timestamp is the source of truth.
 
-### Technical Approach
-1.  **Modify `SyncManager`**:
-    - When `GameStateManager` signals "Finished", `SyncManager` writes `{ finished: true, finishTime: ServerValue.TIMESTAMP }` to the player's node.
-2.  **Modify `GameStateManager`**:
-    - When receiving remote player updates, check for `finishTime`.
-    - Sort results based on `finishTime`.
+### Project Structure Notes
 
-### Task Breakdown
-- [ ] Update `SyncManager` to send `ServerValue.TIMESTAMP` on finish.
-- [ ] Update `GameStateManager` to handle remote finish times.
-- [ ] Create a "Race Results" sorter helper.
+- Modify `src/multiplayer/sync.ts` (SyncManager)
+- Modify `src/game/state.ts` (GameStateManager)
+- Tests in `src/multiplayer/sync.test.ts` or `src/game/state.test.ts`
 
-## File List
-- [MODIFY] `src/multiplayer/sync.ts`
-- [MODIFY] `src/game/state.ts`
-- [MODIFY] `src/game/types.ts` (if shared types exist)
+### References
 
-## Change Log
-- 2026-01-14: Story created.
+- [Source: _bmad-output/architecture.md#Multiplayer Synchronization Architecture]
+- [Source: _bmad-output/epics.md#Story 2.6]
+
+## Dev Agent Record
+
+### Agent Model Used
+
+Antigravity (simulating create-story workflow)
+
+### Debug Log References
+
+### Completion Notes List
+
+### File List

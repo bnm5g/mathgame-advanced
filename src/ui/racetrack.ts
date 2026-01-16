@@ -45,9 +45,17 @@ export class RaceTrackRenderer {
             console.log(`[RaceTrack] Rendering ${remotePlayers.length} remote player(s)`);
         }
         remotePlayers.forEach((player, index) => {
-            const interpolatedState = player.currentState; // Already interpolated by SyncManager
-            console.log(`[RaceTrack] Drawing ghost car for ${player.uid} at pos ${interpolatedState.pos.toFixed(2)}`);
-            this.drawCar(interpolatedState.pos, index + 1, '#ff6b6b', `P${index + 2}`);
+            const interpolatedState = player.currentState;
+
+            // Handle disconnected players
+            if (interpolatedState.connected === false) {
+                // Option 1: Don't render
+                // return; 
+                // Option 2: Render as 'ghost'/gray
+                this.drawCar(interpolatedState.pos, index + 1, '#4a4a4a', `P${index + 2} (Offline)`);
+            } else {
+                this.drawCar(interpolatedState.pos, index + 1, '#ff6b6b', `P${index + 2}`);
+            }
         });
 
         // Draw progress bar

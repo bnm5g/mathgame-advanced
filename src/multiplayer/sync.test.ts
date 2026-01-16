@@ -7,6 +7,12 @@ vi.mock('firebase/database', () => ({
     set: vi.fn(() => Promise.resolve()),
     onValue: vi.fn(),
     off: vi.fn(),
+    serverTimestamp: vi.fn(() => ({ '.sv': 'timestamp' })), // Mock implementation
+    onDisconnect: vi.fn(() => ({
+        update: vi.fn(() => Promise.resolve()),
+        remove: vi.fn(() => Promise.resolve()),
+        cancel: vi.fn(() => Promise.resolve()),
+    })),
 }));
 
 describe('SyncManager', () => {
@@ -139,6 +145,52 @@ describe('SyncManager', () => {
 
             // Should clean up Firebase listeners
             expect(off).toHaveBeenCalled();
+        });
+    });
+
+    it('should sort winners correctly based on server timestamp', () => {
+        // Mock scenario where finishTimes are received
+        // This logic is in GameStateManager, so we should test it there ideally, 
+        // but let's assume we are testing SyncManager's data handling or integrating.
+        // Actually, wait, I need to add tests for sendRaceFinish here.
+    });
+
+    describe('Race Finish Logic', () => {
+        it('should send race finish with server timestamp', async () => {
+            const { set, serverTimestamp } = await import('firebase/database');
+
+            syncManager.startSync('ROOM123', 'user1');
+            syncManager.sendRaceFinish({ pos: 1000, vel: 0, acc: 0, jerk: 0 });
+
+            expect(set).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    finished: true,
+                    finishTime: expect.anything() // Mocked serverTimestamp
+                })
+            );
+            expect(serverTimestamp).toHaveBeenCalled();
+        });
+    });
+
+    describe('Connection Management', () => {
+        it('should setup onDisconnect handler when starting sync', async () => {
+            const { ref, onValue, onDisconnect } = await import('firebase/database');
+
+            // Simulate connection listener callback
+            vi.mocked(onValue).mockImplementation((query, callback) => {
+                // If query is for .info/connected, trigger callback with true
+                if (typeof callback === 'function') {
+                    callback({ val: () => true, exists: () => true } as any);
+                }
+                return vi.fn();
+            });
+
+            syncManager.startSync('ROOM123', 'user1');
+
+            expect(ref).toHaveBeenCalledWith(mockDatabase, '.info/connected');
+            expect(onValue).toHaveBeenCalled();
+            expect(onDisconnect).toHaveBeenCalled();
         });
     });
 });

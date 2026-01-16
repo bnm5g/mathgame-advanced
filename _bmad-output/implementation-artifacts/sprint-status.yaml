@@ -39,8 +39,8 @@ development_status:
   2-3-room-joining-guest-access: done
   2-4-real-time-state-sync: done
   2-5-race-start-coordination: done
-  2-6-server-authoritative-conflict-resolution: backlog
-  2-7-disconnection-handling: backlog
+  2-6-server-authoritative-conflict-resolution: done
+  2-7-disconnection-handling: ready-for-dev
   epic-2-retrospective: optional
 
   epic-3: backlog

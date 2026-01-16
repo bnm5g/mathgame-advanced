@@ -22,6 +22,8 @@ export interface GameState {
     raceStartTime: number;
     raceEndTime: number | null;
     lastAllocatedIndex: number | null;
+    finishTimes: Record<string, number>; // Map of UID to server finish time
+    winner: string | null; // UID of the winner
 }
 
 export type StateListener = (state: GameState) => void;
@@ -68,9 +70,37 @@ export class GameStateManager {
             isRaceFinished: false,
             raceStartTime: 0,
             raceEndTime: null,
-            lastAllocatedIndex: null
+            lastAllocatedIndex: null,
+            finishTimes: {},
+            winner: null
         };
         this.notify();
+    }
+
+    /**
+     * Records a finish time for a player and re-evaluates the winner
+     */
+    public recordFinishTime(uid: string, finishTime: number): void {
+        if (!this.state.finishTimes[uid]) {
+            // Use functional update to ensure we don't mutate the old state directly if we were using React, 
+            // but here we just update the map.
+            const newFinishTimes = { ...this.state.finishTimes, [uid]: finishTime };
+
+            // Sort to find winner (lowest time wins)
+            const uids = Object.keys(newFinishTimes);
+            let winner = this.state.winner;
+
+            if (uids.length > 0) {
+                // Sort by finish time ascending
+                uids.sort((a, b) => newFinishTimes[a] - newFinishTimes[b]);
+                winner = uids[0];
+            }
+
+            this.setState({
+                finishTimes: newFinishTimes,
+                winner: winner
+            });
+        }
     }
 
     /**
@@ -82,6 +112,8 @@ export class GameStateManager {
             raceStartTime: Date.now()
         });
     }
+
+    // ... existing setQuestions, nextQuestion, etc ... -> Replaced by actual code
 
     /**
      * Initializes the manager with a set of questions
