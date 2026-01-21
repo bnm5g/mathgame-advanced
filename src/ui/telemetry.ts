@@ -5,13 +5,19 @@ export class TelemetryManager {
     private unsubscribe: (() => void) | null = null;
     private gameStateManager: GameStateManager;
     private history: Record<string, number[]> = {};
-    private readonly MAX_HISTORY = 50;
+    private readonly MAX_HISTORY = 50; // 5 seconds at 10Hz
+    private sampleInterval: any = null;
 
     constructor(gameStateManager: GameStateManager) {
         this.gameStateManager = gameStateManager;
-        PHYSICS_VARIABLES.forEach(v => this.history[v] = []);
+        PHYSICS_VARIABLES.forEach(v => this.history[v] = Array(this.MAX_HISTORY).fill(0));
         this.initializeDOM();
-        this.unsubscribe = this.gameStateManager.subscribe((_state) => this.updateView());
+
+        // Sample physics data at 10Hz for smooth sparklines
+        this.sampleInterval = setInterval(() => this.samplePhysics(), 100);
+
+        // Still subscribe for UI state changes (holding value)
+        this.unsubscribe = this.gameStateManager.subscribe((_state) => this.updateStaticElements());
     }
 
     private initializeDOM(): void {
@@ -23,12 +29,13 @@ export class TelemetryManager {
 
         let html = `
             <div class="telemetry-header">TELEMETRY</div>
-            <div class="telemetry-row energy-row" data-var="energy">
-                <div class="telemetry-label">RESONANCE ENERGY</div>
-                <div class="telemetry-value-container">
-                    <span class="telemetry-value">0</span>
+            <div class="telemetry-sidebar-content">
+                <div class="telemetry-row energy-row" data-var="energy">
+                    <div class="telemetry-label">RESONANCE ENERGY</div>
+                    <div class="telemetry-value-container">
+                        <span class="telemetry-value">0</span>
+                    </div>
                 </div>
-            </div>
         `;
 
         PHYSICS_VARIABLES.forEach(variable => {
@@ -47,53 +54,81 @@ export class TelemetryManager {
             `;
         });
 
+        html += `</div>`;
+
         this.container.innerHTML = html;
         app.insertBefore(this.container, app.firstChild);
+
+        // Add touch/click listeners for allocation
+        this.addInteractionListeners();
     }
 
-    private updateView(): void {
-        if (!this.container) return;
+    private addInteractionListeners(): void {
+        const rows = this.container?.querySelectorAll('.telemetry-row');
+        rows?.forEach((row, index) => {
+            // physics variables start at index 1 in the HTML loop (energy is index 0)
+            if (index === 0) return; // Skip energy row
 
+            row.addEventListener('click', () => {
+                const state = this.gameStateManager.getState();
+                if (state.isAllocationActive) {
+                    const choiceIndex = index - 1;
+                    console.log('[Telemetry] Allocation via sidebar:', choiceIndex);
+                    this.gameStateManager.allocatePoints(choiceIndex);
+                    this.triggerFlash(PHYSICS_VARIABLES[choiceIndex]);
+                }
+            });
+        });
+    }
+
+    /**
+     * Samples physics data at a fixed frequency (10Hz)
+     */
+    private samplePhysics(): void {
+        const physicsState = this.gameStateManager.getStateFromEngine();
+        if (!physicsState) return;
+
+        PHYSICS_VARIABLES.forEach(variable => {
+            const value = physicsState[variable];
+
+            this.history[variable].push(value);
+            if (this.history[variable].length > this.MAX_HISTORY) {
+                this.history[variable].shift();
+            }
+
+            // Update individual value and bar immediately
+            const row = this.container?.querySelector(`.telemetry-row[data-var="${variable}"]`);
+            if (row) {
+                const valueEl = row.querySelector('.telemetry-value');
+                const fillEl = row.querySelector('.telemetry-bar-fill') as HTMLElement;
+                if (valueEl) valueEl.textContent = value.toFixed(3);
+
+                if (fillEl) {
+                    // Bars still use static max for global "speed/progress" feel
+                    const maxValues: Record<string, number> = { pos: 1000, vel: 50, acc: 20, jerk: 10 };
+                    const percentage = Math.min(Math.abs(value) / maxValues[variable], 1) * 100;
+                    fillEl.style.width = `${percentage}%`;
+                }
+            }
+
+            this.drawSparkline(variable);
+        });
+    }
+
+    /**
+     * Updates elements that don't need 10Hz sampling
+     */
+    private updateStaticElements(): void {
+        if (!this.container) return;
         const state = this.gameStateManager.getState();
+
         const energyValueEl = this.container.querySelector('.energy-row .telemetry-value');
         if (energyValueEl) {
             energyValueEl.textContent = state.holdingValue.toString();
         }
 
-        const physicsState = this.gameStateManager.getStateFromEngine();
-        if (!physicsState) return;
-
-        PHYSICS_VARIABLES.forEach(variable => {
-            const row = this.container?.querySelector(`.telemetry-row[data-var="${variable}"]`);
-            if (row) {
-                const valueEl = row.querySelector('.telemetry-value');
-                const fillEl = row.querySelector('.telemetry-bar-fill') as HTMLElement;
-
-                const value = physicsState[variable];
-                if (valueEl) {
-                    valueEl.textContent = value.toFixed(3);
-                }
-
-                if (fillEl) {
-                    // Simple normalization for visualization (0-100 range estimate)
-                    const maxValues: Record<string, number> = {
-                        pos: 1000, // Finish line
-                        vel: 50,
-                        acc: 20,
-                        jerk: 10
-                    };
-                    const percentage = Math.min(Math.abs(value) / maxValues[variable], 1) * 100;
-                    fillEl.style.width = `${percentage}%`;
-
-                    // Update History & Sparkline
-                    this.history[variable].push(percentage);
-                    if (this.history[variable].length > this.MAX_HISTORY) {
-                        this.history[variable].shift();
-                    }
-                    this.drawSparkline(variable);
-                }
-            }
-        });
+        // Apply global resonance class to sidebar if needed
+        this.container.classList.toggle('resonance-active', state.isResonanceActive);
     }
 
     private drawSparkline(variable: string): void {
@@ -109,24 +144,81 @@ export class TelemetryManager {
         const height = canvas.height;
 
         ctx.clearRect(0, 0, width, height);
-        const colors: Record<string, string> = {
-            pos: '#00c3ff', // Matches hsl-pos
-            vel: '#00e676', // Matches hsl-vel
-            acc: '#ffc400', // Matches hsl-acc
-            jerk: '#b247ff' // Matches hsl-jerk
-        };
-        ctx.strokeStyle = colors[variable] || '#00f3ff';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
 
+        if (data.length === 0) return;
+
+        // Dynamic Scaling
+        let min = Math.min(...data);
+        let max = Math.max(...data);
+        let range = max - min;
+
+        // Minimum range to avoid flat-line jitter and infinite zoom (e.g. JERK: 0)
+        if (range < 0.1) {
+            range = 1.0;
+            // Center the line if range is small
+            min = min - 0.5;
+            max = max + 0.5;
+        } else {
+            // 10% vertical padding
+            min -= range * 0.1;
+            max += range * 0.1;
+            range = max - min;
+        }
+
+        // Grid lines (Relative to local scale)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 1;
+        [0.25, 0.5, 0.75].forEach(p => {
+            const y = height * p;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+        });
+
+        const isResonance = this.gameStateManager.getState().isResonanceActive;
+        const color = isResonance ? '#00ffff' : (this.getVariableColor(variable));
+
+        // Draw Fill Area
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, `${color}44`);
+        gradient.addColorStop(1, `${color}00`);
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
         const step = width / (this.MAX_HISTORY - 1);
+
+        ctx.moveTo(0, height);
         data.forEach((val, i) => {
             const x = i * step;
-            const y = height - (val / 100) * height;
+            const y = height - ((val - min) / range) * height;
+            ctx.lineTo(x, y);
+        });
+        ctx.lineTo(width, height);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw Line
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        data.forEach((val, i) => {
+            const x = i * step;
+            const y = height - ((val - min) / range) * height;
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         });
         ctx.stroke();
+    }
+
+    private getVariableColor(variable: string): string {
+        const colors: Record<string, string> = {
+            pos: '#00c3ff',
+            vel: '#00e676',
+            acc: '#ffc400',
+            jerk: '#b247ff'
+        };
+        return colors[variable] || '#ffffff';
     }
 
     /**
@@ -143,6 +235,7 @@ export class TelemetryManager {
 
     public destroy(): void {
         if (this.unsubscribe) this.unsubscribe();
+        if (this.sampleInterval) clearInterval(this.sampleInterval);
         this.container?.remove();
     }
 }

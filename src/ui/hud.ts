@@ -35,6 +35,30 @@ export class HUDManager {
         `;
 
         app.appendChild(this.container);
+
+        this.addInteractionListeners();
+    }
+
+    private addInteractionListeners(): void {
+        const buttons = this.container?.querySelectorAll('.answer-option');
+        buttons?.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const key = btn.getAttribute('data-key');
+                if (!key) return;
+
+                const index = parseInt(key) - 1;
+                const state = this.gameStateManager.getState();
+
+                if (state.isAllocationActive) {
+                    this.gameStateManager.allocatePoints(index);
+                } else if (state.currentQuestion) {
+                    this.gameStateManager.submitAnswer(index);
+                }
+
+                // Also trigger visual feedback through state
+                this.gameStateManager.handleInput(key);
+            });
+        });
     }
 
     private updateView(state: GameState): void {
@@ -58,6 +82,10 @@ export class HUDManager {
 
         // Finish State Class
         this.container.classList.toggle('race-finished', state.isRaceFinished);
+
+        // Resonance Mode Class
+        this.container.classList.toggle('resonance-active', state.isResonanceActive);
+        document.documentElement.classList.toggle('resonance-active', state.isResonanceActive);
 
         // Question or Allocation Details
         const questionText = this.container.querySelector('.question-text');

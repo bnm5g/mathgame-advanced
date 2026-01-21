@@ -75,11 +75,18 @@ engine.subscribe((_dt) => {
   // Render race track with local and remote players
   const localState = engine.physics.getState();
   const remotePlayers = syncManager.getRemotePlayers();
-  raceTrackRenderer.render(localState, remotePlayers);
+  const isConnected = syncManager.getIsConnected();
+  const gameState = gameStateManager.getState();
+  raceTrackRenderer.render(localState, remotePlayers, isConnected, gameState.isResonanceActive);
 
   // Write local state to Firebase (throttled by SyncManager)
   if (isMultiplayer && currentRoomId) {
-    syncManager.writeLocalState(localState);
+    const gameState = gameStateManager.getState();
+    if (gameState.isRaceFinished) {
+      syncManager.sendRaceFinish(localState, gameState.streak, gameState.isResonanceActive);
+    } else {
+      syncManager.writeLocalState(localState, gameState.streak, gameState.isResonanceActive);
+    }
   }
 });
 

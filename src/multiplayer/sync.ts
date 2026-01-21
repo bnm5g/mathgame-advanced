@@ -1,11 +1,14 @@
-import { Database, ref, set, onValue, off, type DatabaseReference, serverTimestamp, onDisconnect } from 'firebase/database';
+import { Database, ref, set, update, onValue, off, type DatabaseReference, serverTimestamp, onDisconnect } from 'firebase/database';
 import type { IPhysicsState } from '../game/physics';
+import { GAME_CONSTANTS } from '../game/constants';
 
 export interface RemotePlayerState extends IPhysicsState {
     timestamp: number;
     finished?: boolean;
     finishTime?: number | object; // object when writing serverTimestamp
     connected?: boolean;
+    streak?: number;
+    isResonanceActive?: boolean;
 }
 
 export interface RemotePlayer {
@@ -22,6 +25,7 @@ export class SyncManager {
     private remotePlayers: Map<string, RemotePlayer> = new Map();
     private listeners: DatabaseReference[] = [];
     private connectedRef: DatabaseReference | null = null;
+    private isConnected: boolean = false;
 
     // Throttling
     private lastSyncTime: number = 0;
@@ -42,16 +46,24 @@ export class SyncManager {
         // Listen for connection state changes
         this.connectedRef = ref(this.database, '.info/connected');
         onValue(this.connectedRef, (snapshot) => {
-            if (snapshot.val() === true && this.roomId && this.userId) {
+            const connected = snapshot.val() === true;
+            this.isConnected = connected;
+
+            if (connected && this.roomId && this.userId) {
                 const userStateRef = ref(this.database, `rooms/${this.roomId}/players/${this.userId}/state`);
 
-                // When we disconnect, update the connected status to false
+                // When we disconnect, update the connected status to false and record when
                 onDisconnect(userStateRef).update({
-                    connected: false
+                    connected: false,
+                    timestamp: serverTimestamp()
                 }).then(() => {
                     // Update connected status to true on connect
-                    // We merge this with existing state writing if we triggered a write recently, 
-                    // but it's safer to just set it here or rely on writeLocalState
+                    update(userStateRef, {
+                        connected: true,
+                        timestamp: serverTimestamp()
+                    }).catch(err => {
+                        console.error('SyncManager: Failed to set connected status', err);
+                    });
                 });
             }
         });
@@ -88,7 +100,7 @@ export class SyncManager {
     /**
      * Write local physics state to Firebase (throttled)
      */
-    public writeLocalState(state: IPhysicsState): void {
+    public writeLocalState(state: IPhysicsState, streak: number = 0, isResonanceActive: boolean = false): void {
         if (!this.roomId || !this.userId) {
             console.warn('SyncManager: Cannot write state - not initialized');
             return;
@@ -105,7 +117,9 @@ export class SyncManager {
             acc: this.round3(state.acc),
             jerk: this.round3(state.jerk),
             timestamp: serverTimestamp(), // Use server timestamp for fairness
-            connected: true
+            connected: true,
+            streak,
+            isResonanceActive
         };
 
         set(stateRef, roundedState).catch(err => {
@@ -116,7 +130,7 @@ export class SyncManager {
     /**
      * Send race finish event with authoritative server timestamp
      */
-    public sendRaceFinish(state: IPhysicsState): void {
+    public sendRaceFinish(state: IPhysicsState, streak: number = 0, isResonanceActive: boolean = false): void {
         if (!this.roomId || !this.userId) return;
 
         const stateRef = ref(this.database, `rooms/${this.roomId}/players/${this.userId}/state`);
@@ -128,7 +142,9 @@ export class SyncManager {
             timestamp: serverTimestamp(),
             finished: true,
             finishTime: serverTimestamp(), // Authoritative finish time
-            connected: true
+            connected: true,
+            streak,
+            isResonanceActive
         };
 
         // Force write immediately, bypassing throttle
@@ -173,7 +189,7 @@ export class SyncManager {
     public getInterpolatedState(uid: string, currentTime?: number): RemotePlayerState {
         const player = this.remotePlayers.get(uid);
         if (!player) {
-            return { pos: 0, vel: 0, acc: 0, jerk: 0, timestamp: 0 };
+            return { pos: 0, vel: 0, acc: 0, jerk: 0, timestamp: 0, connected: false };
         }
 
         const now = currentTime ?? Date.now();
@@ -192,15 +208,32 @@ export class SyncManager {
             acc: player.currentState.acc,
             jerk: player.currentState.jerk,
             timestamp: player.currentState.timestamp,
-            connected: player.currentState.connected // Pass connection status
+            connected: player.currentState.connected, // Pass connection status
+            streak: player.currentState.streak,
+            isResonanceActive: player.currentState.isResonanceActive
         };
     }
 
     /**
      * Get all remote players for rendering
+     * Filters out players who have been disconnected for more than 10 seconds
      */
     public getRemotePlayers(): RemotePlayer[] {
-        return Array.from(this.remotePlayers.values());
+        const now = Date.now();
+        return Array.from(this.remotePlayers.values()).filter(player => {
+            if (player.currentState.connected === false) {
+                const disconnectedDuration = now - player.lastUpdateTime;
+                return disconnectedDuration <= GAME_CONSTANTS.DISCONNECTION_GRACE_PERIOD_MS;
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Check if the local client is currently connected to Firebase
+     */
+    public getIsConnected(): boolean {
+        return this.isConnected;
     }
 
     /**
@@ -217,8 +250,8 @@ export class SyncManager {
 
             const players = snapshot.val();
             Object.keys(players).forEach(uid => {
-                if (uid !== this.userId) {
-                    // Listen to each remote player's state
+                if (uid !== this.userId && !this.remotePlayers.has(uid)) {
+                    // Start tracking new player - this sets up a sticky listener for their state
                     this.listenToPlayerState(uid);
                 }
             });

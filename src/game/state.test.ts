@@ -87,4 +87,51 @@ describe('GameStateManager Validation', () => {
         expect(stateManager.getState().holdingValue).toBe(10);
         expect(stateManager.getState().isAllocationActive).toBe(true);
     });
+
+    test('submitAnswer increments streak on correct answer', () => {
+        stateManager.submitAnswer(1); // Correct
+        expect(stateManager.getState().streak).toBe(1);
+
+        // Reset feedback state manually to allow next submission in tests
+        (stateManager as any).state.feedbackState = 'idle';
+        stateManager.submitAnswer(1); // Correct again
+        expect(stateManager.getState().streak).toBe(2);
+    });
+
+    test('submitAnswer resets streak on wrong answer', () => {
+        stateManager.submitAnswer(1); // Correct
+        expect(stateManager.getState().streak).toBe(1);
+
+        (stateManager as any).state.feedbackState = 'idle';
+        stateManager.submitAnswer(0); // Wrong
+        expect(stateManager.getState().streak).toBe(0);
+    });
+
+    test('streak of 5 triggers resonance mode', () => {
+        for (let i = 0; i < 5; i++) {
+            (stateManager as any).state.feedbackState = 'idle';
+            stateManager.submitAnswer(1); // Correct
+        }
+
+        const state = stateManager.getState();
+        expect(state.streak).toBe(5);
+        expect(state.isResonanceActive).toBe(true);
+    });
+
+    test('breaking streak after resonance resets isResonanceActive', () => {
+        // Trigger resonance
+        for (let i = 0; i < 5; i++) {
+            (stateManager as any).state.feedbackState = 'idle';
+            stateManager.submitAnswer(1);
+        }
+        expect(stateManager.getState().isResonanceActive).toBe(true);
+
+        // Break streak
+        (stateManager as any).state.feedbackState = 'idle';
+        stateManager.submitAnswer(0); // Wrong
+
+        const state = stateManager.getState();
+        expect(state.streak).toBe(0);
+        expect(state.isResonanceActive).toBe(false);
+    });
 });

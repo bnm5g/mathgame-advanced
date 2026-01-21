@@ -33,21 +33,21 @@ development_status:
   1-7-race-state-win-condition: done
   epic-1-retrospective: optional
 
-  epic-2: in-progress
+  epic-2: done
   2-1-firebase-integration-auth: done
   2-2-room-creation-hosting: done
   2-3-room-joining-guest-access: done
   2-4-real-time-state-sync: done
   2-5-race-start-coordination: done
   2-6-server-authoritative-conflict-resolution: done
-  2-7-disconnection-handling: ready-for-dev
-  epic-2-retrospective: optional
+  2-7-disconnection-handling: done
+  epic-2-retrospective: done
 
-  epic-3: backlog
-  3-1-answer-streak-tracking-resonance-logic: backlog
-  3-2-resonance-mode-visuals: backlog
-  3-3-telemetry-sparklines: backlog
-  3-4-tablet-layout-touch-support: backlog
-  3-5-accessibility-aria-regions: backlog
-  3-6-audio-feedback-integration: backlog
+  epic-3: in-progress
+  3-1-answer-streak-tracking-resonance-logic: review
+  3-2-resonance-mode-visuals: review
+  3-3-telemetry-sparklines: review
+  3-4-tablet-layout-touch-support: review
+  3-5-accessibility-aria-regions: ready-for-dev
+  3-6-audio-feedback-integration: ready-for-dev
   epic-3-retrospective: optional

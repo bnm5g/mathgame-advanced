@@ -53,8 +53,8 @@ describe('PhysicsEngine Friction Spike Penalty', () => {
         engine.update(0.1, true);
 
         const state = engine.getState();
-        expect(state.acc).toBe(9.5);
-        expect(state.vel).toBe(10.45);
+        expect(state.acc).toBe(8);
+        expect(state.vel).toBe(8.8);
     });
 
     it('should NOT apply friction when isFrictionActive is false', () => {

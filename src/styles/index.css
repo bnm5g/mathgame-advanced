@@ -28,6 +28,8 @@
   --hsl-success: 160, 100%, 40%;
   --hsl-error: 0, 100%, 50%;
   --hsl-steel: 230, 10%, 40%;
+  --hsl-resonance: 180, 100%, 50%;
+  /* Electric Cyan */
 
   /* Layout Tokens */
   --sidebar-width: 280px;
@@ -95,10 +97,74 @@ body {
 /* If previous implementation used fixed position: */
 /* We should add margin-right to #game-app equal to sidebar width */
 
+@media (min-width: 768px) and (max-width: 1024px) {
+  :root {
+    --sidebar-width: 0px;
+    --hud-blur: 8px;
+    --tablet-dashboard-height: 180px;
+  }
+}
+
 @media (min-width: 768px) {
   #game-app {
     padding-left: var(--sidebar-width);
-    /* Space for sidebar on the left */
+    padding-top: var(--tablet-dashboard-height, 0);
     padding-right: 0;
   }
+}
+
+/* Mobile Gate Styles */
+.mobile-gate {
+  position: fixed;
+  inset: 0;
+  background: #0b0e14;
+  z-index: 9999;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  padding: 2rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.mobile-gate-content h1 {
+  color: #ff3366;
+  font-size: 2rem;
+  letter-spacing: 4px;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 767px) {
+  .mobile-gate {
+    display: flex;
+  }
+
+  #app,
+  #lobby-overlay {
+    display: none !important;
+  }
+}
+
+/* Resonance Breathing Animation */
+@keyframes resonanceBreath {
+  0% {
+    border-color: hsla(var(--hsl-resonance), 0.3);
+    box-shadow: 0 0 15px hsla(var(--hsl-resonance), 0.2), 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  50% {
+    border-color: hsla(var(--hsl-resonance), 0.8);
+    box-shadow: 0 0 40px hsla(var(--hsl-resonance), 0.5), 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  100% {
+    border-color: hsla(var(--hsl-resonance), 0.3);
+    box-shadow: 0 0 15px hsla(var(--hsl-resonance), 0.2), 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Global Resonance Theme Helper */
+:root.resonance-active {
+  --hsl-pos: var(--hsl-resonance);
 }

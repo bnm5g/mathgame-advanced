@@ -24,6 +24,8 @@ export interface GameState {
     lastAllocatedIndex: number | null;
     finishTimes: Record<string, number>; // Map of UID to server finish time
     winner: string | null; // UID of the winner
+    streak: number;
+    isResonanceActive: boolean;
 }
 
 export type StateListener = (state: GameState) => void;
@@ -72,7 +74,9 @@ export class GameStateManager {
             raceEndTime: null,
             lastAllocatedIndex: null,
             finishTimes: {},
-            winner: null
+            winner: null,
+            streak: 0,
+            isResonanceActive: false
         };
         this.notify();
     }
@@ -159,6 +163,12 @@ export class GameStateManager {
             this.state.feedbackState = 'correct';
             this.state.holdingValue += this.state.currentQuestion.points;
 
+            // Story 3.1: Increment streak
+            this.state.streak++;
+            if (this.state.streak >= GAME_CONSTANTS.RESONANCE_STREAK_THRESHOLD) {
+                this.state.isResonanceActive = true;
+            }
+
             // Auto-transition to allocation after a short delay
             setTimeout(() => {
                 this.state.feedbackState = 'idle';
@@ -167,6 +177,11 @@ export class GameStateManager {
             }, GAME_CONSTANTS.FEEDBACK_DELAY_MS);
         } else {
             this.state.feedbackState = 'wrong';
+
+            // Story 3.1: Reset streak and resonance
+            this.state.streak = 0;
+            this.state.isResonanceActive = false;
+
             // Trigger 2.0s Friction Spike Penalty
             this.state.frictionSpikeEnd = Date.now() + GAME_CONSTANTS.FRICTION_SPIKE_DURATION_MS;
             this.notify();

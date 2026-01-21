@@ -135,6 +135,32 @@
   letter-spacing: 2px;
 }
 
+/* Resonance Mode Visuals */
+.hud-overlay.resonance-active .question-container {
+  border: 1px solid hsl(var(--hsl-resonance));
+  background: hsla(var(--hsl-resonance), 0.05);
+  animation: resonanceBreath 3s ease-in-out infinite;
+}
+
+.hud-overlay.resonance-active .question-text {
+  color: hsl(var(--hsl-resonance));
+  text-shadow: 0 0 15px hsla(var(--hsl-resonance), 0.6);
+  font-weight: 700;
+}
+
+.hud-overlay.resonance-active .answer-option {
+  border-color: hsla(var(--hsl-resonance), 0.3);
+}
+
+.hud-overlay.resonance-active .answer-option:hover {
+  background: hsla(var(--hsl-resonance), 0.1);
+  border-color: hsla(var(--hsl-resonance), 0.6);
+}
+
+.hud-overlay.resonance-active .answer-option::before {
+  color: hsl(var(--hsl-resonance));
+}
+
 /* Sidebar Investment Flashes */
 @keyframes investmentFlash {
   0% {
@@ -165,7 +191,8 @@
   border-right: 1px solid hsla(var(--hsl-pos), 0.2);
   padding: 2rem 1.5rem;
   z-index: 5;
-  pointer-events: none;
+  pointer-events: auto;
+  /* Enable touch/click */
   font-family: 'Inter', sans-serif;
   box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
 }
@@ -181,8 +208,22 @@
 }
 
 .telemetry-row {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   transition: all 0.3s ease;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.telemetry-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.telemetry-row:active {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(0.98);
 }
 
 .energy-row .telemetry-label {
@@ -225,11 +266,13 @@
 }
 
 .telemetry-sparkline {
-  height: 20px;
+  height: 40px;
   width: 100%;
   margin-top: 0.5rem;
-  opacity: 0.5;
+  opacity: 0.8;
   filter: drop-shadow(0 0 4px hsla(var(--var-color, var(--hsl-pos)), 0.3));
+  background: hsla(0, 0%, 100%, 0.02);
+  border-radius: 4px;
 }
 
 /* Individual Row Colors via CSS variables */
@@ -249,13 +292,23 @@
   --var-color: var(--hsl-jerk);
 }
 
-.telemetry-row .telemetry-label {
-  color: hsl(var(--var-color, 255, 255, 255));
-  opacity: 0.8;
-}
-
 .telemetry-row .telemetry-value {
   color: hsl(var(--var-color, 255, 255, 255));
+}
+
+/* Resonance Integration */
+.telemetry-sidebar.resonance-active {
+  border-right-color: hsl(var(--hsl-resonance));
+  box-shadow: 8px 0 32px hsla(var(--hsl-resonance), 0.2);
+}
+
+.telemetry-sidebar.resonance-active .telemetry-header {
+  color: hsl(var(--hsl-resonance));
+}
+
+.telemetry-sidebar.resonance-active .telemetry-sparkline {
+  filter: drop-shadow(0 0 8px hsla(var(--hsl-resonance), 0.4));
+  opacity: 1;
 }
 
 /* Friction Spike / Reboot Effect */
@@ -329,5 +382,84 @@
 
   100% {
     transform: translate(1px, -2px) rotate(-1deg);
+  }
+}
+
+/* Tablet Optimizations */
+@media (max-width: 1024px) {
+  .hud-overlay {
+    padding-left: 0;
+    padding-top: var(--tablet-dashboard-height, 180px);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .question-container {
+    padding: 1rem;
+    max-width: 500px;
+    margin-bottom: 2rem;
+  }
+
+  .question-text {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .answer-option {
+    padding: 0.75rem;
+    min-height: 48px;
+  }
+
+  .telemetry-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    height: var(--tablet-dashboard-height, 180px);
+    bottom: auto;
+    border-right: none;
+    border-bottom: 1px solid hsla(var(--hsl-pos), 0.2);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+  }
+
+  .telemetry-header {
+    margin-bottom: 0.75rem;
+    font-size: 0.7rem;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .telemetry-sidebar-content {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    overflow-x: auto;
+    width: 100%;
+    scrollbar-width: none;
+  }
+
+  .telemetry-sidebar-content::-webkit-scrollbar {
+    display: none;
+  }
+
+  .telemetry-row {
+    flex: 1;
+    min-width: 160px;
+    margin-bottom: 0;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .telemetry-sparkline {
+    height: 30px;
+  }
+
+  .telemetry-value {
+    font-size: 1rem;
   }
 }

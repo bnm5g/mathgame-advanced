@@ -10,7 +10,8 @@ vi.mock('firebase/database', () => ({
     update: vi.fn(),
     onValue: vi.fn(),
     runTransaction: vi.fn(),
-    serverTimestamp: vi.fn(() => ({}))
+    serverTimestamp: vi.fn(() => ({})),
+    get: vi.fn(() => Promise.resolve({ exists: () => true, val: () => ({}) }))
 }));
 
 vi.mock('./firebase', () => ({
@@ -47,7 +48,7 @@ describe('RoomManager', () => {
             const manager = new RoomManager();
             const { runTransaction } = await import('firebase/database');
 
-            vi.mocked(runTransaction).mockResolvedValue({ committed: true, snapshot: {} } as any);
+            vi.mocked(runTransaction).mockResolvedValue({ committed: true, snapshot: { exists: () => true, val: () => ({}) } } as any);
 
             // This will fail because joinRoom is not implemented yet
             await expect(manager.joinRoom('ROOMID', 'password')).resolves.not.toThrow();
