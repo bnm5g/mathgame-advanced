@@ -1,6 +1,6 @@
 # Story 3.4: Tablet Layout & Touch Support
 
-Status: review
+Status: done
 
 ## Story
 

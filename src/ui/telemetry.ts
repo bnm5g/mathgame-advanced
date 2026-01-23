@@ -1,4 +1,5 @@
 import { GameStateManager, PHYSICS_VARIABLES } from '../game/state';
+import type { GameState } from '../game/state';
 
 export class TelemetryManager {
     private container: HTMLElement | null = null;
@@ -7,6 +8,8 @@ export class TelemetryManager {
     private history: Record<string, number[]> = {};
     private readonly MAX_HISTORY = 50; // 5 seconds at 10Hz
     private sampleInterval: any = null;
+    private lastAllocatedIndex: number | null = null;
+    private barPercentages: Record<string, number> = { pos: 0, vel: 0, acc: 0, jerk: 0 };
 
     constructor(gameStateManager: GameStateManager) {
         this.gameStateManager = gameStateManager;
@@ -16,8 +19,11 @@ export class TelemetryManager {
         // Sample physics data at 10Hz for smooth sparklines
         this.sampleInterval = setInterval(() => this.samplePhysics(), 100);
 
-        // Still subscribe for UI state changes (holding value)
-        this.unsubscribe = this.gameStateManager.subscribe((_state) => this.updateStaticElements());
+        // Still subscribe for UI state changes (holding value and flash)
+        this.unsubscribe = this.gameStateManager.subscribe((state) => {
+            this.updateStaticElements(state);
+            this.checkForAllocationFlash(state);
+        });
     }
 
     private initializeDOM(): void {
@@ -41,15 +47,15 @@ export class TelemetryManager {
         PHYSICS_VARIABLES.forEach(variable => {
             const label = variable.toUpperCase();
             html += `
-                <div class="telemetry-row" data-var="${variable}">
+                <div class="telemetry-row" data-var="${variable}" role="button" aria-label="Allocate to ${label}">
                     <div class="telemetry-label">${label}</div>
                     <div class="telemetry-value-container">
-                        <span class="telemetry-value">0.000</span>
+                        <span class="telemetry-value" aria-label="current ${label} value">0.000</span>
                     </div>
-                    <div class="telemetry-bar-bg">
+                    <div class="telemetry-bar-bg" aria-hidden="true">
                         <div class="telemetry-bar-fill"></div>
                     </div>
-                    <canvas class="telemetry-sparkline" width="240" height="20"></canvas>
+                    <canvas class="telemetry-sparkline" width="240" height="40" aria-label="${label} history graph"></canvas>
                 </div>
             `;
         });
@@ -69,7 +75,7 @@ export class TelemetryManager {
             // physics variables start at index 1 in the HTML loop (energy is index 0)
             if (index === 0) return; // Skip energy row
 
-            row.addEventListener('click', () => {
+            const handleAllocation = () => {
                 const state = this.gameStateManager.getState();
                 if (state.isAllocationActive) {
                     const choiceIndex = index - 1;
@@ -77,6 +83,11 @@ export class TelemetryManager {
                     this.gameStateManager.allocatePoints(choiceIndex);
                     this.triggerFlash(PHYSICS_VARIABLES[choiceIndex]);
                 }
+            };
+
+            row.addEventListener('click', (e) => {
+                e.preventDefault();
+                handleAllocation();
             });
         });
     }
@@ -106,8 +117,11 @@ export class TelemetryManager {
                 if (fillEl) {
                     // Bars still use static max for global "speed/progress" feel
                     const maxValues: Record<string, number> = { pos: 1000, vel: 50, acc: 20, jerk: 10 };
-                    const percentage = Math.min(Math.abs(value) / maxValues[variable], 1) * 100;
-                    fillEl.style.width = `${percentage}%`;
+                    const targetPercentage = Math.min(Math.abs(value) / maxValues[variable], 1) * 100;
+
+                    // Smooth lerp (0.2 factor) for bar width
+                    this.barPercentages[variable] = this.barPercentages[variable] + (targetPercentage - this.barPercentages[variable]) * 0.2;
+                    fillEl.style.width = `${this.barPercentages[variable]}%`;
                 }
             }
 
@@ -118,9 +132,8 @@ export class TelemetryManager {
     /**
      * Updates elements that don't need 10Hz sampling
      */
-    private updateStaticElements(): void {
+    private updateStaticElements(state: GameState): void {
         if (!this.container) return;
-        const state = this.gameStateManager.getState();
 
         const energyValueEl = this.container.querySelector('.energy-row .telemetry-value');
         if (energyValueEl) {
@@ -129,6 +142,13 @@ export class TelemetryManager {
 
         // Apply global resonance class to sidebar if needed
         this.container.classList.toggle('resonance-active', state.isResonanceActive);
+    }
+
+    private checkForAllocationFlash(state: GameState): void {
+        if (state.lastAllocatedIndex !== null && state.lastAllocatedIndex !== this.lastAllocatedIndex) {
+            this.triggerFlash(PHYSICS_VARIABLES[state.lastAllocatedIndex]);
+            this.lastAllocatedIndex = state.lastAllocatedIndex;
+        }
     }
 
     private drawSparkline(variable: string): void {

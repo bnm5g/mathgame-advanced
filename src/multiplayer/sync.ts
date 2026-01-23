@@ -208,9 +208,9 @@ export class SyncManager {
             acc: player.currentState.acc,
             jerk: player.currentState.jerk,
             timestamp: player.currentState.timestamp,
-            connected: player.currentState.connected, // Pass connection status
-            streak: player.currentState.streak,
-            isResonanceActive: player.currentState.isResonanceActive
+            connected: player.currentState.connected ?? false,
+            streak: player.currentState.streak ?? 0,
+            isResonanceActive: !!player.currentState.isResonanceActive
         };
     }
 

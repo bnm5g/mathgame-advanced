@@ -21,6 +21,24 @@ export class LobbyManager {
         this.showMainMenu();
     }
 
+    private showError(message: string): void {
+        const errorEl = this.container?.querySelector('.error-message');
+        if (errorEl) {
+            errorEl.textContent = message;
+            (errorEl as HTMLElement).style.display = 'block';
+        } else {
+            alert(message); // Fallback
+        }
+    }
+
+    private clearError(): void {
+        const errorEl = this.container?.querySelector('.error-message');
+        if (errorEl) {
+            errorEl.textContent = '';
+            (errorEl as HTMLElement).style.display = 'none';
+        }
+    }
+
     private showMainMenu(): void {
         if (!this.container) return;
         this.container.innerHTML = `
@@ -41,6 +59,7 @@ export class LobbyManager {
                         <input type="password" id="join-password" class="lobby-input" placeholder="Password (Optional)">
                     </div>
                     <button id="btn-join" class="lobby-btn">Join Room</button>
+                    <div class="error-message" style="display: none; color: #ff3366; margin-top: 1rem; font-size: 0.85rem; text-align: center;"></div>
                 </div>
             </div>
         `;
@@ -61,6 +80,7 @@ export class LobbyManager {
                     
                     <button id="btn-create-submit" class="lobby-btn">Create & Host</button>
                     <button id="btn-back" class="lobby-btn" style="background: transparent; border: 1px solid var(--border-dim); color: var(--text-dim);">Back</button>
+                    <div class="error-message" style="display: none; color: #ff3366; margin-top: 1rem; font-size: 0.85rem; text-align: center;"></div>
                 </div>
             </div>
         `;
@@ -84,9 +104,26 @@ export class LobbyManager {
                 <div class="lobby-form">
                      <p style="color: var(--text-dim); font-size: 0.9rem;">Joined: ${roleText}</p>
                      <button id="btn-start-race" class="lobby-btn" ${startBtnState}>${startBtnText}</button>
+                     <button id="btn-leave" class="lobby-btn" style="background: transparent; border: 1px solid var(--border-dim); color: var(--text-dim); margin-top: 0.5rem;">Leave Room</button>
                 </div>
             </div>
         `;
+        this.bindWaitingRoomEvents();
+    }
+
+    private bindWaitingRoomEvents(): void {
+        const leaveBtn = document.getElementById('btn-leave');
+        leaveBtn?.addEventListener('click', () => {
+            if (this.statusUnsubscribe) {
+                this.statusUnsubscribe();
+                this.statusUnsubscribe = null;
+            }
+            // Import stopped manually to avoid circular but it's handled in main
+            // For now we just refresh or trigger window event? 
+            // Better: call stopMultiplayerSync exported from main
+            import('../main').then(m => m.stopMultiplayerSync());
+            this.showMainMenu();
+        });
     }
 
     private bindEvents(): void {
@@ -107,6 +144,7 @@ export class LobbyManager {
             }
 
             try {
+                this.clearError();
                 (joinBtn as HTMLButtonElement).disabled = true;
                 joinBtn!.textContent = 'Joining...';
 
@@ -117,7 +155,7 @@ export class LobbyManager {
             } catch (error) {
                 console.error(error);
                 const message = error instanceof Error ? error.message : 'Failed to join room';
-                alert(message);
+                this.showError(message);
                 (joinBtn as HTMLButtonElement).disabled = false;
                 joinBtn!.textContent = 'Join Room';
             }
@@ -177,6 +215,7 @@ export class LobbyManager {
             const password = passwordInput?.value || '';
 
             try {
+                this.clearError();
                 (createSubmitBtn as HTMLButtonElement).disabled = true;
                 createSubmitBtn!.textContent = 'Creating...';
 
@@ -186,7 +225,7 @@ export class LobbyManager {
                 this.setupRaceCoordination(roomId, true);
             } catch (error) {
                 console.error(error);
-                alert('Failed to create room. See console.');
+                this.showError('Failed to create room. See console.');
                 (createSubmitBtn as HTMLButtonElement).disabled = false;
                 createSubmitBtn!.textContent = 'Create & Host';
             }

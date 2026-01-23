@@ -1,6 +1,6 @@
 # Story 3.2: Resonance Mode Visuals
 
-Status: review
+Status: done
 
 ## Story
 

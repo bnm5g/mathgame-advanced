@@ -1,6 +1,6 @@
 # Story 3.6: Audio Feedback Integration
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

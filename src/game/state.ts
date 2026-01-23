@@ -26,6 +26,7 @@ export interface GameState {
     winner: string | null; // UID of the winner
     streak: number;
     isResonanceActive: boolean;
+    announcement: { message: string, priority: 'polite' | 'assertive', timestamp: number } | null;
 }
 
 export type StateListener = (state: GameState) => void;
@@ -76,7 +77,8 @@ export class GameStateManager {
             finishTimes: {},
             winner: null,
             streak: 0,
-            isResonanceActive: false
+            isResonanceActive: false,
+            announcement: null
         };
         this.notify();
     }
@@ -167,12 +169,28 @@ export class GameStateManager {
             this.state.streak++;
             if (this.state.streak >= GAME_CONSTANTS.RESONANCE_STREAK_THRESHOLD) {
                 this.state.isResonanceActive = true;
+                this.state.announcement = {
+                    message: "RESONANCE ACTIVE",
+                    priority: 'assertive',
+                    timestamp: Date.now()
+                };
+            } else {
+                this.state.announcement = {
+                    message: "Correct",
+                    priority: 'polite',
+                    timestamp: Date.now()
+                };
             }
 
             // Auto-transition to allocation after a short delay
-            setTimeout(() => {
+            this.setTimeout(() => {
                 this.state.feedbackState = 'idle';
                 this.state.isAllocationActive = true;
+                this.state.announcement = {
+                    message: "Allocate Power",
+                    priority: 'assertive',
+                    timestamp: Date.now()
+                };
                 this.notify();
             }, GAME_CONSTANTS.FEEDBACK_DELAY_MS);
         } else {
@@ -180,20 +198,27 @@ export class GameStateManager {
 
             // Story 3.1: Reset streak and resonance
             this.state.streak = 0;
+            const wasResonant = this.state.isResonanceActive;
             this.state.isResonanceActive = false;
+
+            this.state.announcement = {
+                message: wasResonant ? "Streak broken. Resonance lost." : "Wrong answer",
+                priority: 'assertive',
+                timestamp: Date.now()
+            };
 
             // Trigger 2.0s Friction Spike Penalty
             this.state.frictionSpikeEnd = Date.now() + GAME_CONSTANTS.FRICTION_SPIKE_DURATION_MS;
             this.notify();
 
             // Wrong answer penalty cycle
-            setTimeout(() => {
+            this.setTimeout(() => {
                 this.nextQuestion();
             }, GAME_CONSTANTS.FEEDBACK_DELAY_MS);
 
             // Ensure the UI updates when the friction spike duration expires
             // This prevents the "SYSTEM REBOOT" message from hanging until the next interaction
-            setTimeout(() => {
+            this.setTimeout(() => {
                 this.notify();
             }, GAME_CONSTANTS.FRICTION_SPIKE_DURATION_MS + 10);
         }
@@ -235,10 +260,17 @@ export class GameStateManager {
             this.state.isAllocationActive = false;
             this.state.lastAllocatedIndex = answerIndex;
 
+            const varName = targetVar.toUpperCase() === 'POS' ? 'Position' : targetVar.toUpperCase() === 'VEL' ? 'Velocity' : targetVar.toUpperCase();
+            this.state.announcement = {
+                message: `${varName} increased`,
+                priority: 'polite',
+                timestamp: Date.now()
+            };
+
             this.notify();
 
             // AC3: 500ms delay for visual confirmation after allocation
-            setTimeout(() => {
+            this.setTimeout(() => {
                 this.nextQuestion();
             }, 500);
         }
@@ -289,6 +321,22 @@ export class GameStateManager {
                 sequenceId: this.sequenceCounter
             }
         });
+    }
+
+    private timers: any[] = [];
+    private originalSetTimeout = window.setTimeout.bind(window);
+
+    private setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number {
+        const id = this.originalSetTimeout(handler, timeout, ...args);
+        this.timers.push(id);
+        return id;
+    }
+
+    public destroy(): void {
+        this.timers.forEach(id => clearTimeout(id));
+        this.timers = [];
+        this.listeners.clear();
+        this.resetState();
     }
 }
 

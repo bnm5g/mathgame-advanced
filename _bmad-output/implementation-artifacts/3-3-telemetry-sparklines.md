@@ -1,6 +1,6 @@
 # Story 3.3: Telemetry Sparklines
 
-Status: review
+Status: done
 
 ## Story
 

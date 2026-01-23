@@ -44,10 +44,11 @@ development_status:
   epic-2-retrospective: done
 
   epic-3: in-progress
-  3-1-answer-streak-tracking-resonance-logic: review
-  3-2-resonance-mode-visuals: review
-  3-3-telemetry-sparklines: review
-  3-4-tablet-layout-touch-support: review
-  3-5-accessibility-aria-regions: ready-for-dev
-  3-6-audio-feedback-integration: ready-for-dev
-  epic-3-retrospective: optional
+  3-1-answer-streak-tracking-resonance-logic: done
+  3-2-resonance-mode-visuals: done
+  3-3-telemetry-sparklines: done
+  3-4-tablet-layout-touch-support: done
+  3-5-accessibility-aria-regions: done
+  3-6-audio-feedback-integration: done
+  epic-3: done
+  epic-3-retrospective: done

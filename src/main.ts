@@ -4,7 +4,7 @@ import { InputManager } from './utils/keyboard';
 import { HUDManager } from './ui/hud';
 import { TelemetryManager } from './ui/telemetry';
 import { RaceTrackRenderer } from './ui/racetrack';
-import { gameStateManager, PHYSICS_VARIABLES } from './game/state';
+import { gameStateManager } from './game/state';
 import { QuestionLoader } from './questions/loader';
 import { authenticateAnonymously, getCurrentUser } from './multiplayer/auth';
 import { setupConnectionMonitor, database } from './multiplayer/firebase';
@@ -33,7 +33,7 @@ authenticateAnonymously()
 gameStateManager.setEngine(engine.physics);
 const inputManager = new InputManager();
 const hudManager = new HUDManager(gameStateManager);
-const telemetryManager = new TelemetryManager(gameStateManager);
+new TelemetryManager(gameStateManager);
 const raceTrackRenderer = new RaceTrackRenderer();
 const syncManager = new SyncManager(database);
 
@@ -45,25 +45,10 @@ export const lobbyManager = new LobbyManager();
 let currentRoomId: string | null = null;
 let isMultiplayer = false;
 
-// Connect Input -> State (Story 1.5 Integration)
+// Main input orchestration removed in favor of UI Manager direct binding for lower latency
+// Keyboard support is still handled by InputManager for non-interactive elements if needed, 
+// but game actions are now bound directly in HUDManager and TelemetryManager.
 inputManager.subscribe((key) => {
-  // Ignore input if user is typing in a form field
-  if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
-    return;
-  }
-
-  const index = parseInt(key) - 1;
-  const state = gameStateManager.getState();
-
-  if (index >= 0 && index < 4) {
-    if (state.isAllocationActive) {
-      const varName = PHYSICS_VARIABLES[index];
-      gameStateManager.allocatePoints(index);
-      telemetryManager.triggerFlash(varName);
-    } else {
-      gameStateManager.submitAnswer(index);
-    }
-  }
   gameStateManager.handleInput(key);
 });
 
